@@ -11,8 +11,8 @@ ENV RUST_TARGETS="x86_64-unknown-linux-musl"
 RUN rustup target install x86_64-unknown-linux-musl
 
 # Creating a placeholder project
-RUN USER=root cargo new rust
-WORKDIR /usr/src/rust
+RUN USER=root cargo new api-gateway
+WORKDIR /usr/src/api-gateway
 
 # moving deps info
 COPY ./Cargo.lock ./Cargo.lock
@@ -31,6 +31,6 @@ RUN cargo build --target x86_64-unknown-linux-musl --release
 
 # This creates a tiny container with the executable
 FROM scratch
-COPY --from=build /usr/src/rust/target/x86_64-unknown-linux-musl/release/rust .
+COPY --from=build /usr/src/rust/target/x86_64-unknown-linux-musl/release/api-gateway .
 USER 1000
-CMD ["./rust"]
+CMD ["./api-gateway"]

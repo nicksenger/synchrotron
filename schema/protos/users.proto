@@ -1,0 +1,54 @@
+syntax = "proto3";
+package users;
+
+service Users {
+  // Create a new user in the system
+  rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
+
+  // Authenticate as a particular user in the system
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+
+  // Get data about one or more users in the system given their IDs
+  rpc GetUsersByIds(GetUsersByIdsRequest) returns (GetUsersByIdsResponse);
+
+  // Get data about all users in the system
+  rpc GetAllUsers(GetAllUsersRequest) returns (stream User);
+}
+
+// A registered user
+message User {
+  string username = 1; // Name of the user
+}
+
+// Request to create a new user
+message CreateUserRequest {
+  string username = 1; // Desired username for new user
+  string password = 2; // Desired password for new user
+}
+
+// Successful response from creating a user
+message CreateUserResponse {}
+
+// Request to authenticate as a specified user
+message AuthenticateRequest {
+  string username = 1; // Desired username to authenticate as
+  string password = 2; // Password for the desired user
+}
+
+// Successful response from authenticating
+message AuthenticateResponse {
+  string token = 1; // Authorization token to use for making requests
+}
+
+// Request to get information for one or more users by their IDs
+message GetUsersByIdsRequest {
+  repeated int32 user_ids = 1; // IDs to get user information for
+}
+
+// Successful response from getting users by IDs
+message GetUsersByIdsResponse {
+  repeated User users = 1; // Users corresponding to the requested IDs
+}
+
+// Request to get information about all users in the system
+message GetAllUsersRequest {}
