@@ -1,5 +1,10 @@
 version: "3.7"
 services:
+  base:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+
   users-db:
     image: postgres:12
     environment:
@@ -9,13 +14,14 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - glot_users_db_volume:/var/lib/postgresql/data
+      - microbiome_users_db_volume:/var/lib/postgresql/data
   
   users-service:
     build:
-      context: ./
-      dockerfile: users.Dockerfile
+      context: ./users-service/
+      dockerfile: Dockerfile
     depends_on:
+      - base
       - users-db
     ports:
       - 50051:50051
@@ -23,14 +29,15 @@ services:
 
   api-gateway:
     build:
-      context: ./
-      dockerfile: gateway.Dockerfile
+      context: ./api-gateway/
+      dockerfile: Dockerfile
     environment:
       USERS_SERVICE_URI: http://users-service:50051
     depends_on:
+      - base
       - users-service
     ports:
       - 8000:8000
 
 volumes:
-  glot_users_db_volume:
+  microbiome_users_db_volume:

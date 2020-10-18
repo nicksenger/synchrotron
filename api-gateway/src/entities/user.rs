@@ -3,7 +3,7 @@ use std::convert::From;
 use crate::{graphql::schema::Context};
 
 #[derive(Debug, Clone)]
-/// A Glot user
+/// A Microbiome user
 pub struct User {
     // ID of the user
     pub id: i32,

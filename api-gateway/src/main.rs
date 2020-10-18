@@ -14,7 +14,7 @@ mod entities;
 mod graphql;
 
 #[derive(Debug, StructOpt)]
-#[structopt(name = "glot_server")]
+#[structopt(name = "microbiome_server")]
 struct Opt {
     #[structopt(short = "s", long = "socket", default_value = "0.0.0.0:8000")]
     socket: String,
@@ -50,7 +50,7 @@ async fn main() -> io::Result<()> {
 
     let schema = Arc::new(graphql::schema::create_schema());
 
-    println!("Glot running at: http://{}", url);
+    println!("Microbiome running at: http://{}", url);
     HttpServer::new(move || {
         App::new()
             .data((schema.clone(), user_channel.clone()))
@@ -60,7 +60,7 @@ async fn main() -> io::Result<()> {
             .route("{path:.*}", get().to(index))
     })
     .bind(&url)
-    .expect("Failed to start Glot")
+    .expect("Failed to start Microbiome")
     .run()
     .await
 }
