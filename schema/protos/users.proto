@@ -17,7 +17,8 @@ service Users {
 
 // A registered user
 message User {
-  string username = 1; // Name of the user
+  int32 id = 1; // ID of the user
+  string username = 2; // Name of the user
 }
 
 // Request to create a new user
@@ -27,7 +28,9 @@ message CreateUserRequest {
 }
 
 // Successful response from creating a user
-message CreateUserResponse {}
+message CreateUserResponse {
+  User user = 1;
+}
 
 // Request to authenticate as a specified user
 message AuthenticateRequest {

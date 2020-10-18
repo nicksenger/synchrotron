@@ -18,7 +18,12 @@ impl Users for UsersService {
         &self,
         _request: Request<CreateUserRequest>,
     ) -> Result<Response<CreateUserResponse>, Status> {
-        Ok(Response::new(CreateUserResponse {}))
+        Ok(Response::new(CreateUserResponse {
+            user: Some(User {
+                id: 1,
+                username: "foo".to_owned(),
+            }),
+        }))
     }
 
     async fn authenticate(
@@ -32,9 +37,19 @@ impl Users for UsersService {
 
     async fn get_users_by_ids(
         &self,
-        _request: Request<GetUsersByIdsRequest>,
+        request: Request<GetUsersByIdsRequest>,
     ) -> Result<Response<GetUsersByIdsResponse>, Status> {
-        Ok(Response::new(GetUsersByIdsResponse { users: vec![] }))
+        Ok(Response::new(GetUsersByIdsResponse {
+            users: request
+                .into_inner()
+                .user_ids
+                .into_iter()
+                .map(|id| User {
+                    id,
+                    username: "foo".to_owned(),
+                })
+                .collect(),
+        }))
     }
 
     async fn get_all_users(

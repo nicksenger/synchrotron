@@ -21,7 +21,11 @@ pub async fn graphql(
     st: Data<Arc<Schema>>,
     data: Json<GraphQLRequest>,
 ) -> Result<HttpResponse, Error> {
-    let user_data = UserData::new();
+    let user_channel = tonic::transport::Channel::from_static("http://[::1]:50051")
+        .connect()
+        .await.unwrap();
+
+    let user_data = UserData::new(user_channel);
 
     let ctx = Context::new(user_data);
     let res = data.execute(&st, &ctx).await;
