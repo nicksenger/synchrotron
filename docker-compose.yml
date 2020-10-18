@@ -13,8 +13,8 @@ services:
   
   users-service:
     build:
-      context: ./users-service
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: users.Dockerfile
     depends_on:
       - users-db
     ports:
@@ -23,10 +23,10 @@ services:
 
   api-gateway:
     build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
+      context: ./
+      dockerfile: gateway.Dockerfile
     environment:
-      USERS_SERVICE_URI: http://users-service
+      USERS_SERVICE_URI: http://users-service:50051
     depends_on:
       - users-service
     ports:

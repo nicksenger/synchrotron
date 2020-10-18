@@ -8,7 +8,7 @@ use actix_web::{
 use juniper::http::{graphiql::graphiql_source, GraphQLRequest};
 
 use super::schema::{Context, Schema};
-use crate::data::{UserData};
+use crate::data::UserData;
 
 pub async fn graphiql() -> HttpResponse {
     let html = graphiql_source("/graphql", None);
@@ -18,17 +18,13 @@ pub async fn graphiql() -> HttpResponse {
 }
 
 pub async fn graphql(
-    st: Data<Arc<Schema>>,
+    st: Data<(Arc<Schema>, tonic::transport::Channel)>,
     data: Json<GraphQLRequest>,
 ) -> Result<HttpResponse, Error> {
-    let user_channel = tonic::transport::Channel::from_static("http://[::1]:50051")
-        .connect()
-        .await.unwrap();
-
-    let user_data = UserData::new(user_channel);
+    let user_data = UserData::new(st.1.clone());
 
     let ctx = Context::new(user_data);
-    let res = data.execute(&st, &ctx).await;
+    let res = data.execute(&st.0, &ctx).await;
     let json = serde_json::to_string(&res).map_err(ErrorInternalServerError)?;
 
     Ok(HttpResponse::Ok()

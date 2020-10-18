@@ -1,4 +1,4 @@
-use std::{io, path::PathBuf, sync::Arc};
+use std::{io, path::PathBuf, sync::Arc, env};
 
 use actix_files::NamedFile;
 use actix_web::{
@@ -16,7 +16,7 @@ mod graphql;
 #[derive(Debug, StructOpt)]
 #[structopt(name = "glot_server")]
 struct Opt {
-    #[structopt(short = "s", long = "socket", default_value = "127.0.0.1:8000")]
+    #[structopt(short = "s", long = "socket", default_value = "0.0.0.0:8000")]
     socket: String,
 }
 
@@ -41,12 +41,19 @@ async fn main() -> io::Result<()> {
     env_logger::init();
     let url = opt.socket;
 
+    let user_channel =
+        tonic::transport::Channel::from_shared(env::var("USERS_SERVICE_URI").unwrap())
+            .unwrap()
+            .connect()
+            .await
+            .unwrap();
+
     let schema = Arc::new(graphql::schema::create_schema());
 
     println!("Glot running at: http://{}", url);
     HttpServer::new(move || {
         App::new()
-            .data(schema.clone())
+            .data((schema.clone(), user_channel.clone()))
             .route("/graphql", post().to(graphql::handler::graphql))
             .route("/graphiql", get().to(graphql::handler::graphiql))
             .wrap(Logger::default())
