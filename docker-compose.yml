@@ -23,6 +23,8 @@ services:
     depends_on:
       - base
       - users-db
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@users-db:5432/users
     ports:
       - 50051:50051
     env_file: users-service/.env
