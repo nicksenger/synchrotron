@@ -5,14 +5,15 @@ use crate::data::UserData;
 
 #[derive(Clone)]
 pub struct Context {
+    pub user_id: Option<i32>,
     pub user_data: UserData,
 }
 
 impl juniper::Context for Context {}
 
 impl Context {
-    pub fn new(user_data: UserData) -> Self {
-        Self { user_data }
+    pub fn new(user_id: Option<i32>, user_data: UserData) -> Self {
+        Self { user_id, user_data }
     }
 }
 

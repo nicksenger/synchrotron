@@ -1,7 +1,7 @@
 use juniper::FieldResult;
 
 use super::schema::Context;
-use crate::entities::{User};
+use crate::entities::User;
 
 pub struct Query;
 
@@ -9,5 +9,9 @@ pub struct Query;
 impl Query {
     async fn user_by_id(ctx: &Context, id: i32) -> FieldResult<User> {
         Ok(ctx.user_data.user_by_id(id).await)
+    }
+
+    async fn users(ctx: &Context) -> FieldResult<Vec<User>> {
+        Ok(ctx.user_data.all_users().await)
     }
 }

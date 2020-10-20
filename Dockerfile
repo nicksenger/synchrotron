@@ -29,6 +29,7 @@ RUN cargo build --target x86_64-unknown-linux-musl --release
 COPY ./api-gateway /usr/src/microbiome/api-gateway
 COPY ./schema /usr/src/microbiome/schema
 COPY ./users-service /usr/src/microbiome/users-service
+RUN sed -i 's/localhost/host.docker.internal/g' /usr/src/microbiome/users-service/.env
 
 # Only code changes should need to compile
 RUN cargo build --target x86_64-unknown-linux-musl --release

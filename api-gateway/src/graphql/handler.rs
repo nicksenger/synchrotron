@@ -3,7 +3,7 @@ use std::sync::Arc;
 use actix_web::{
     error::ErrorInternalServerError,
     web::{Data, Json},
-    Error, HttpResponse,
+    Error, HttpRequest, HttpResponse,
 };
 use juniper::http::{graphiql::graphiql_source, GraphQLRequest};
 
@@ -18,12 +18,20 @@ pub async fn graphiql() -> HttpResponse {
 }
 
 pub async fn graphql(
-    st: Data<(Arc<Schema>, tonic::transport::Channel)>,
+    req: HttpRequest,
+    st: Data<(Arc<Schema>, String, tonic::transport::Channel)>,
     data: Json<GraphQLRequest>,
 ) -> Result<HttpResponse, Error> {
-    let user_data = UserData::new(st.1.clone());
+    let user_data = UserData::new(st.2.clone());
 
-    let ctx = Context::new(user_data);
+    let token = req
+        .headers()
+        .get("Authorization")
+        .and_then(|header| header.to_str().ok())
+        .unwrap_or("");
+    let user_id = user_data.verify(token.to_owned()).await;
+
+    let ctx = Context::new(user_id, user_data);
     let res = data.execute(&st.0, &ctx).await;
     let json = serde_json::to_string(&res).map_err(ErrorInternalServerError)?;
 

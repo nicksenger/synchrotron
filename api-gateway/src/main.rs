@@ -1,4 +1,4 @@
-use std::{io, path::PathBuf, sync::Arc, env};
+use std::{env, io, path::PathBuf, sync::Arc};
 
 use actix_files::NamedFile;
 use actix_web::{

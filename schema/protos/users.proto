@@ -13,6 +13,9 @@ service Users {
 
   // Get data about all users in the system
   rpc GetAllUsers(GetAllUsersRequest) returns (stream User);
+
+  // Verify a JWT
+  rpc Verify(VerifyRequest) returns (VerifyResponse);
 }
 
 // A registered user
@@ -55,3 +58,13 @@ message GetUsersByIdsResponse {
 
 // Request to get information about all users in the system
 message GetAllUsersRequest {}
+
+// Request to verify a JWT
+message VerifyRequest {
+  string token = 1;
+}
+
+// Response from verifying a JWT
+message VerifyResponse {
+  int32 user_id = 1;
+}

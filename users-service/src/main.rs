@@ -12,7 +12,8 @@ use tonic::{transport::Server, Request, Response, Status};
 use schema::users::{
     users_server::{Users, UsersServer},
     AuthenticateRequest, AuthenticateResponse, CreateUserRequest, CreateUserResponse,
-    GetAllUsersRequest, GetUsersByIdsRequest, GetUsersByIdsResponse, User,
+    GetAllUsersRequest, GetUsersByIdsRequest, GetUsersByIdsResponse, User, VerifyRequest,
+    VerifyResponse,
 };
 
 mod jwt;
@@ -132,6 +133,20 @@ impl Users for UsersService {
         });
 
         Ok(Response::new(rx))
+    }
+
+    async fn verify(
+        &self,
+        request: Request<VerifyRequest>,
+    ) -> Result<Response<VerifyResponse>, Status> {
+        let result = jwt::verify_jwt(request.into_inner().token).unwrap();
+
+        let user = sqlx::query!("SELECT * FROM users WHERE id=$1;", result.claims.user_id)
+            .fetch_one(&self.pool)
+            .await
+            .unwrap();
+
+        Ok(Response::new(VerifyResponse { user_id: user.id }))
     }
 }
 
