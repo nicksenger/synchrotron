@@ -34,11 +34,16 @@ async fn index(req: HttpRequest) -> io::Result<NamedFile> {
     }
 }
 
+pub struct AppData {
+    pub schema: Arc<graphql::schema::Schema>,
+    pub user_channel: tonic::transport::Channel,
+}
+
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
     dotenv().ok();
+    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
     let opt = Opt::from_args();
-    env_logger::init();
     let url = opt.socket;
 
     let user_channel =
@@ -50,13 +55,13 @@ async fn main() -> io::Result<()> {
 
     let schema = Arc::new(graphql::schema::create_schema());
 
-    println!("Microbiome running at: http://{}", url);
+    log::info!("Microbiome running at: http://{}", url);
     HttpServer::new(move || {
         App::new()
-            .data((schema.clone(), user_channel.clone()))
+            .wrap(Logger::default())
+            .data(AppData { schema: schema.clone(), user_channel: user_channel.clone() })
             .route("/graphql", post().to(graphql::handler::graphql))
             .route("/graphiql", get().to(graphql::handler::graphiql))
-            .wrap(Logger::default())
             .route("{path:.*}", get().to(index))
     })
     .bind(&url)

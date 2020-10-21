@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use actix_web::{
     error::ErrorInternalServerError,
     web::{Data, Json},
@@ -7,8 +5,8 @@ use actix_web::{
 };
 use juniper::http::{graphiql::graphiql_source, GraphQLRequest};
 
-use super::schema::{Context, Schema};
-use crate::data::UserData;
+use super::schema::Context;
+use crate::{data::UserData, AppData};
 
 pub async fn graphiql() -> HttpResponse {
     let html = graphiql_source("/graphql", None);
@@ -19,10 +17,10 @@ pub async fn graphiql() -> HttpResponse {
 
 pub async fn graphql(
     req: HttpRequest,
-    st: Data<(Arc<Schema>, String, tonic::transport::Channel)>,
+    st: Data<AppData>,
     data: Json<GraphQLRequest>,
 ) -> Result<HttpResponse, Error> {
-    let user_data = UserData::new(st.2.clone());
+    let user_data = UserData::new(st.user_channel.clone());
 
     let token = req
         .headers()
@@ -31,8 +29,15 @@ pub async fn graphql(
         .unwrap_or("");
     let user_id = user_data.verify(token.to_owned()).await;
 
+    log::info!(
+        "Processing request for user \"{}\".",
+        user_id
+            .map(|id| format!("{}", id))
+            .unwrap_or("Anonymous".to_owned())
+    );
+
     let ctx = Context::new(user_id, user_data);
-    let res = data.execute(&st.0, &ctx).await;
+    let res = data.execute(&st.schema, &ctx).await;
     let json = serde_json::to_string(&res).map_err(ErrorInternalServerError)?;
 
     Ok(HttpResponse::Ok()
