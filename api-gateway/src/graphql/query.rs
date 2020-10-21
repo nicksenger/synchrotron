@@ -12,6 +12,6 @@ impl Query {
     }
 
     async fn users(ctx: &Context) -> FieldResult<Vec<User>> {
-        Ok(ctx.user_data.all_users().await)
+        Ok(ctx.user_data.all_users().await?)
     }
 }

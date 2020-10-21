@@ -25,9 +25,13 @@ pub async fn graphql(
     let token = req
         .headers()
         .get("Authorization")
-        .and_then(|header| header.to_str().ok())
-        .unwrap_or("");
-    let user_id = user_data.verify(token.to_owned()).await;
+        .and_then(|header| header.to_str().ok());
+
+    let user_id = if token.is_some() {
+        user_data.verify(token.unwrap().to_owned()).await.ok()
+    } else {
+        None
+    };
 
     log::info!(
         "Processing request for user \"{}\".",

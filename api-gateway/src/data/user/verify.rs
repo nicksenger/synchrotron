@@ -1,11 +1,15 @@
 use schema::users::{users_client::UsersClient, VerifyRequest};
 
-pub async fn verify(token: String, channel: tonic::transport::Channel) -> Option<i32> {
+use crate::errors::GatewayError;
+
+pub async fn verify(token: String, channel: tonic::transport::Channel) -> Result<i32, GatewayError> {
     let mut client = UsersClient::new(channel);
     let request = tonic::Request::new(VerifyRequest { token });
-    client
+    let id = client
         .verify(request)
-        .await
-        .map(|res| res.into_inner().user_id)
-        .ok()
+        .await?
+        .map(|res| res.user_id)
+        .into_inner();
+    
+    Ok(id)
 }

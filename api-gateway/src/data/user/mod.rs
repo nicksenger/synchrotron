@@ -1,4 +1,4 @@
-use crate::entities::{Login, NewUser, User};
+use crate::{entities::{Login, NewUser, User}, errors::GatewayError};
 
 mod all_users;
 mod create_user;
@@ -25,19 +25,19 @@ impl UserData {
         self.user_by_id.load(id).await
     }
 
-    pub async fn create_user(&self, data: NewUser) -> User {
+    pub async fn create_user(&self, data: NewUser) -> Result<User, GatewayError> {
         create_user::create_user(data, self.channel.clone()).await
     }
 
-    pub async fn login(&self, data: Login) -> String {
+    pub async fn login(&self, data: Login) -> Result<String, GatewayError> {
         login::login(data, self.channel.clone()).await
     }
 
-    pub async fn all_users(&self) -> Vec<User> {
+    pub async fn all_users(&self) -> Result<Vec<User>, GatewayError> {
         all_users::all_users(self.channel.clone()).await
     }
 
-    pub async fn verify(&self, token: String) -> Option<i32> {
+    pub async fn verify(&self, token: String) -> Result<i32, GatewayError> {
         verify::verify(token, self.channel.clone()).await
     }
 }

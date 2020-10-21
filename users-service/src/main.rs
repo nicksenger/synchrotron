@@ -16,7 +16,10 @@ use schema::users::{
     VerifyResponse,
 };
 
+mod errors;
 mod jwt;
+
+use errors::UsersServiceError;
 
 #[derive(Debug)]
 pub struct UsersService {
@@ -38,7 +41,7 @@ impl Users for UsersService {
         request: Request<CreateUserRequest>,
     ) -> Result<Response<CreateUserResponse>, Status> {
         let req = request.into_inner();
-        let _ = sqlx::query!(
+        (sqlx::query!(
             "INSERT INTO users (
                 username,
                 password,
@@ -51,13 +54,13 @@ impl Users for UsersService {
             Utc::now(),
         )
         .execute(&self.pool)
-        .await
-        .unwrap();
+        .await)
+            .map_err(UsersServiceError::from)?;
 
         let user = sqlx::query!("SELECT * FROM users WHERE username=$1;", req.username)
             .fetch_one(&self.pool)
             .await
-            .unwrap();
+            .map_err(UsersServiceError::from)?;
 
         Ok(Response::new(CreateUserResponse {
             user: Some(User {
@@ -75,14 +78,13 @@ impl Users for UsersService {
         let user = sqlx::query!("SELECT * FROM users WHERE username=$1", req.username)
             .fetch_one(&self.pool)
             .await
-            .unwrap();
-
-        if verify(req.password, user.password.as_str()).unwrap() {
+            .map_err(UsersServiceError::from)?;
+        if verify(req.password, user.password.as_str()).map_err(UsersServiceError::from)? {
             Ok(Response::new(AuthenticateResponse {
                 token: jwt::encode_jwt(user.id, 30).unwrap(),
             }))
         } else {
-            Err(Status::permission_denied("Invalid Login"))
+            Err(Status::permission_denied("Invalid login"))
         }
     }
 
@@ -97,7 +99,7 @@ impl Users for UsersService {
         )
         .fetch_all(&self.pool)
         .await
-        .unwrap();
+        .map_err(UsersServiceError::from)?;
 
         Ok(Response::new(GetUsersByIdsResponse {
             users: users
@@ -119,7 +121,7 @@ impl Users for UsersService {
         let users = sqlx::query!("SELECT * FROM users;")
             .fetch_all(&self.pool)
             .await
-            .unwrap();
+            .map_err(UsersServiceError::from)?;
 
         tokio::spawn(async move {
             for user in users {
@@ -144,7 +146,13 @@ impl Users for UsersService {
         let user = sqlx::query!("SELECT * FROM users WHERE id=$1;", result.claims.user_id)
             .fetch_one(&self.pool)
             .await
-            .unwrap();
+            .map_err(UsersServiceError::from)?;
+
+        log::info!(
+            "Verified request from user {} with id {}",
+            user.username,
+            user.id
+        );
 
         Ok(Response::new(VerifyResponse { user_id: user.id }))
     }
@@ -153,6 +161,7 @@ impl Users for UsersService {
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv().ok();
+    env_logger::init_from_env(env_logger::Env::default().default_filter_or("info"));
     let addr = "[::0]:50051".parse()?;
 
     let pool = PgPoolOptions::new()

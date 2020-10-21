@@ -11,6 +11,7 @@ use structopt::StructOpt;
 
 mod data;
 mod entities;
+mod errors;
 mod graphql;
 
 #[derive(Debug, StructOpt)]

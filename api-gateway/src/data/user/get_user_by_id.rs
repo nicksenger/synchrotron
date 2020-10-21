@@ -5,19 +5,21 @@ use dataloader::{cached::Loader, BatchFn};
 use schema::users::{users_client::UsersClient, GetUsersByIdsRequest};
 use tonic::transport::Channel;
 
-use crate::entities::User;
+use crate::{entities::User, errors::GatewayError};
 
 async fn get_user_by_ids(
     map: &mut HashMap<i32, User>,
     user_ids: Vec<i32>,
     mut client: UsersClient<Channel>,
-) {
+) -> Result<(), GatewayError> {
     let request = tonic::Request::new(GetUsersByIdsRequest { user_ids });
-    let response = client.get_users_by_ids(request).await.unwrap().into_inner();
+    let response = client.get_users_by_ids(request).await?.into_inner();
 
     for u in response.users {
         map.insert(u.id, u.into());
     }
+
+    Ok(())
 }
 
 pub struct UserBatcher {
