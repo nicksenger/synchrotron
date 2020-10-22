@@ -2,10 +2,7 @@ use std::env;
 
 use bcrypt::{hash, verify};
 use chrono::Utc;
-use sqlx::{
-    postgres::{PgPoolOptions, Postgres},
-    Pool,
-};
+use sqlx::postgres::{PgPoolOptions, Postgres};
 use tokio::sync::mpsc;
 use tonic::{transport::Server, Request, Response, Status};
 
@@ -22,18 +19,27 @@ mod jwt;
 use errors::UsersServiceError;
 
 #[derive(Debug)]
-pub struct UsersService {
-    pool: Pool<Postgres>,
+pub struct UsersService<T>
+where
+    for<'a> &'a T: sqlx::Executor<'a, Database = Postgres>,
+{
+    executor: T,
 }
 
-impl UsersService {
-    pub fn new(pool: Pool<Postgres>) -> Self {
-        Self { pool }
+impl<T> UsersService<T>
+where
+    for<'a> &'a T: sqlx::Executor<'a, Database = Postgres>,
+{
+    pub fn new(executor: T) -> Self {
+        Self { executor }
     }
 }
 
 #[tonic::async_trait]
-impl Users for UsersService {
+impl<T: Send + Sync + 'static> Users for UsersService<T>
+where
+    for<'a> &'a T: sqlx::Executor<'a, Database = Postgres>,
+{
     type GetAllUsersStream = mpsc::Receiver<Result<User, Status>>;
 
     async fn create_user(
@@ -53,12 +59,12 @@ impl Users for UsersService {
             Utc::now(),
             Utc::now(),
         )
-        .execute(&self.pool)
+        .execute(&self.executor)
         .await)
             .map_err(UsersServiceError::from)?;
 
         let user = sqlx::query!("SELECT * FROM users WHERE username=$1;", req.username)
-            .fetch_one(&self.pool)
+            .fetch_one(&self.executor)
             .await
             .map_err(UsersServiceError::from)?;
 
@@ -76,7 +82,7 @@ impl Users for UsersService {
     ) -> Result<Response<AuthenticateResponse>, Status> {
         let req = request.into_inner();
         let user = sqlx::query!("SELECT * FROM users WHERE username=$1", req.username)
-            .fetch_one(&self.pool)
+            .fetch_one(&self.executor)
             .await
             .map_err(UsersServiceError::from)?;
         if verify(req.password, user.password.as_str()).map_err(UsersServiceError::from)? {
@@ -97,7 +103,7 @@ impl Users for UsersService {
             "SELECT * FROM users WHERE id IN (SELECT * FROM UNNEST($1::int[]));",
             &req.user_ids
         )
-        .fetch_all(&self.pool)
+        .fetch_all(&self.executor)
         .await
         .map_err(UsersServiceError::from)?;
 
@@ -119,7 +125,7 @@ impl Users for UsersService {
         let (mut tx, rx) = mpsc::channel(4);
 
         let users = sqlx::query!("SELECT * FROM users;")
-            .fetch_all(&self.pool)
+            .fetch_all(&self.executor)
             .await
             .map_err(UsersServiceError::from)?;
 
@@ -144,7 +150,7 @@ impl Users for UsersService {
         let result = jwt::verify_jwt(request.into_inner().token).unwrap();
 
         let user = sqlx::query!("SELECT * FROM users WHERE id=$1;", result.claims.user_id)
-            .fetch_one(&self.pool)
+            .fetch_one(&self.executor)
             .await
             .map_err(UsersServiceError::from)?;
 
