@@ -1,4 +1,4 @@
-use schema::users::{users_client::UsersClient, AuthenticateRequest};
+use schema::users::{users_client::UsersClient, GetTokenRequest};
 
 use crate::{entities::Login, errors::GatewayError};
 
@@ -7,10 +7,10 @@ pub async fn login(
     channel: tonic::transport::Channel,
 ) -> Result<String, GatewayError> {
     let mut client = UsersClient::new(channel);
-    let request = tonic::Request::new(AuthenticateRequest {
+    let request = tonic::Request::new(GetTokenRequest {
         username: data.username,
         password: data.password,
     });
-    let response = client.authenticate(request).await?.into_inner();
+    let response = client.get_token(request).await?.into_inner();
     Ok(response.token)
 }

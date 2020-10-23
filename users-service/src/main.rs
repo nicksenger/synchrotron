@@ -9,8 +9,8 @@ use tonic::{transport::Server, Request, Response, Status};
 use schema::users::{
     users_server::{Users, UsersServer},
     AuthenticateRequest, AuthenticateResponse, CreateUserRequest, CreateUserResponse,
-    GetAllUsersRequest, GetUsersByIdsRequest, GetUsersByIdsResponse, User, VerifyRequest,
-    VerifyResponse,
+    GetAllUsersRequest, GetTokenRequest, GetTokenResponse, GetUsersByIdsRequest,
+    GetUsersByIdsResponse, User,
 };
 
 mod errors;
@@ -76,17 +76,17 @@ where
         }))
     }
 
-    async fn authenticate(
+    async fn get_token(
         &self,
-        request: Request<AuthenticateRequest>,
-    ) -> Result<Response<AuthenticateResponse>, Status> {
+        request: Request<GetTokenRequest>,
+    ) -> Result<Response<GetTokenResponse>, Status> {
         let req = request.into_inner();
         let user = sqlx::query!("SELECT * FROM users WHERE username=$1", req.username)
             .fetch_one(&self.executor)
             .await
             .map_err(UsersServiceError::from)?;
         if verify(req.password, user.password.as_str()).map_err(UsersServiceError::from)? {
-            Ok(Response::new(AuthenticateResponse {
+            Ok(Response::new(GetTokenResponse {
                 token: jwt::encode_jwt(user.id, 30).unwrap(),
             }))
         } else {
@@ -143,10 +143,10 @@ where
         Ok(Response::new(rx))
     }
 
-    async fn verify(
+    async fn authenticate(
         &self,
-        request: Request<VerifyRequest>,
-    ) -> Result<Response<VerifyResponse>, Status> {
+        request: Request<AuthenticateRequest>,
+    ) -> Result<Response<AuthenticateResponse>, Status> {
         let result = jwt::verify_jwt(request.into_inner().token).unwrap();
 
         let user = sqlx::query!("SELECT * FROM users WHERE id=$1;", result.claims.user_id)
@@ -160,7 +160,12 @@ where
             user.id
         );
 
-        Ok(Response::new(VerifyResponse { user_id: user.id }))
+        Ok(Response::new(AuthenticateResponse {
+            user: Some(schema::users::User {
+                username: user.username,
+                id: user.id,
+            }),
+        }))
     }
 }
 

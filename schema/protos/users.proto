@@ -6,7 +6,7 @@ service Users {
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
 
   // Authenticate as a particular user in the system
-  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+  rpc GetToken(GetTokenRequest) returns (GetTokenResponse);
 
   // Get data about one or more users in the system given their IDs
   rpc GetUsersByIds(GetUsersByIdsRequest) returns (GetUsersByIdsResponse);
@@ -14,8 +14,8 @@ service Users {
   // Get data about all users in the system
   rpc GetAllUsers(GetAllUsersRequest) returns (stream User);
 
-  // Verify a JWT
-  rpc Verify(VerifyRequest) returns (VerifyResponse);
+  // Authenticate with a JWT
+  rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
 }
 
 // A registered user
@@ -36,13 +36,13 @@ message CreateUserResponse {
 }
 
 // Request to authenticate as a specified user
-message AuthenticateRequest {
+message GetTokenRequest {
   string username = 1; // Desired username to authenticate as
   string password = 2; // Password for the desired user
 }
 
 // Successful response from authenticating
-message AuthenticateResponse {
+message GetTokenResponse {
   string token = 1; // Authorization token to use for making requests
 }
 
@@ -60,11 +60,11 @@ message GetUsersByIdsResponse {
 message GetAllUsersRequest {}
 
 // Request to verify a JWT
-message VerifyRequest {
+message AuthenticateRequest {
   string token = 1;
 }
 
 // Response from verifying a JWT
-message VerifyResponse {
-  int32 user_id = 1;
+message AuthenticateResponse {
+  User user = 1;
 }

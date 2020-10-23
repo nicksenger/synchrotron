@@ -28,7 +28,7 @@ pub async fn graphql(
         .and_then(|header| header.to_str().ok());
 
     let user_id = if token.is_some() {
-        user_data.verify(token.unwrap().to_owned()).await.ok()
+        user_data.authenticate(token.unwrap().to_owned()).await.ok()
     } else {
         None
     };

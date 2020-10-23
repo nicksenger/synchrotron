@@ -1,11 +1,14 @@
-use crate::{entities::{Login, NewUser, User}, errors::GatewayError};
+use crate::{
+    entities::{Login, NewUser, User},
+    errors::GatewayError,
+};
 
 mod all_users;
 mod create_user;
 mod get_user_by_id;
 use get_user_by_id::{get_loader, UserLoader};
+mod authenticate;
 mod login;
-mod verify;
 
 #[derive(Clone)]
 pub struct UserData {
@@ -37,7 +40,7 @@ impl UserData {
         all_users::all_users(self.channel.clone()).await
     }
 
-    pub async fn verify(&self, token: String) -> Result<i32, GatewayError> {
-        verify::verify(token, self.channel.clone()).await
+    pub async fn authenticate(&self, token: String) -> Result<i32, GatewayError> {
+        authenticate::authenticate(token, self.channel.clone()).await
     }
 }
