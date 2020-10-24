@@ -5,3 +5,4 @@ members = [
   "users-service",
   "schema"
 ]
+exclude = ["frontend"]

@@ -3,7 +3,7 @@ WORKDIR /usr/src/
 USER root
 
 # install rustup/cargo
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly
 ENV PATH /root/.cargo/bin:$PATH
 
 # Add compilation target for later scratch container
@@ -13,6 +13,7 @@ RUN rustup target install x86_64-unknown-linux-musl
 # Creating a placeholder workspace
 RUN USER=root mkdir microbiome
 WORKDIR /usr/src/microbiome
+RUN USER=root cargo install cargo-make
 RUN USER=root cargo new api-gateway
 RUN USER=root cargo new schema --lib
 RUN USER=root cargo new users-service
@@ -30,7 +31,9 @@ COPY ./api-gateway /usr/src/microbiome/api-gateway
 COPY ./schema /usr/src/microbiome/schema
 COPY ./users-service /usr/src/microbiome/users-service
 RUN sed -i 's/localhost/host.docker.internal/g' /usr/src/microbiome/users-service/.env
+COPY ./frontend /usr/src/microbiome/frontend
 
 # Only code changes should need to compile
 RUN cargo build --target x86_64-unknown-linux-musl --release
+
 CMD echo ""
