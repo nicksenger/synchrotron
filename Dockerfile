@@ -15,6 +15,9 @@ RUN USER=root mkdir microbiome
 WORKDIR /usr/src/microbiome
 RUN USER=root cargo install cargo-make
 RUN USER=root cargo new api-gateway
+WORKDIR /usr/src/microbiome/api-gateway/src
+RUN touch lib.rs
+WORKDIR /usr/src/microbiome
 RUN USER=root cargo new schema --lib
 RUN USER=root cargo new frontend --lib
 RUN USER=root cargo new users-service
@@ -35,7 +38,9 @@ RUN sed -i 's/localhost/host.docker.internal/g' /usr/src/microbiome/users-servic
 COPY ./frontend /usr/src/microbiome/frontend
 
 # Only code changes should need to compile
-RUN cargo build --target x86_64-unknown-linux-musl --release -p api-gateway
 RUN cargo build --target x86_64-unknown-linux-musl --release -p users-service
+RUN cargo build --target x86_64-unknown-linux-musl --release -p api-gateway
+WORKDIR /usr/src/microbiome/frontend
+RUN cargo make build_release
 
 CMD echo ""
