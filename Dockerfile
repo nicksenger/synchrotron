@@ -34,6 +34,7 @@ RUN sed -i 's/localhost/host.docker.internal/g' /usr/src/microbiome/users-servic
 COPY ./frontend /usr/src/microbiome/frontend
 
 # Only code changes should need to compile
-RUN cargo build --target x86_64-unknown-linux-musl --release
+RUN cargo build --target x86_64-unknown-linux-musl --release -p api-gateway
+RUN cargo build --target x86_64-unknown-linux-musl --release -p users-service
 
 CMD echo ""

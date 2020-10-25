@@ -40,7 +40,7 @@ pub async fn graphql(
             .unwrap_or("Anonymous".to_owned())
     );
 
-    let ctx = Context::new(user_id, user_data);
+    let ctx = Context::new(user_id, Some(user_data));
     let res = data.execute(&st.schema, &ctx).await;
     let json = serde_json::to_string(&res).map_err(ErrorInternalServerError)?;
 
