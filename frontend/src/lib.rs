@@ -1,71 +1,79 @@
+#![type_length_limit="1382035"]
+
 use std::{cell::RefCell, rc::Rc};
 
 use fluorophore::{button, text_input, ButtonType};
-use futures::{channel::mpsc, future::ready, stream::Stream, StreamExt, FutureExt};
+use futures::{future::ready, StreamExt, FutureExt};
 use mox::mox;
-use moxie::state;
+use moxie::{state, once};
 use moxie_dom::{
     elements::text_content::{div, Div},
     prelude::*,
 };
 use moxie_streams::mox_stream;
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+
+mod operations;
+
+use operations::req;
 
 #[wasm_bindgen(start)]
 pub fn begin() {
     moxie_dom::boot(document().body(), root);
 }
 
-struct User {
-    username: String,
-    token: String
+pub struct User {
+    pub username: String,
+    pub token: String
 }
 
 #[derive(Clone)]
-enum Route {
+pub enum Route {
     Login,
     Register,
     Welcome,
 }
 
-#[derive(Clone)]
-struct LoginPayload {
-    username: String,
-    password: String,
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct LoginPayload {
+    pub username: String,
+    pub password: String,
 }
 
-#[derive(Clone)]
-struct LoginSuccessPayload {
-    username: String,
-    token: String,
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct LoginSuccessPayload {
+    pub username: String,
+    pub token: String,
 }
 
-#[derive(Clone)]
-struct LoginFailedPayload {
-    message: String,
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct LoginFailedPayload {
+    pub message: String,
 }
 
-#[derive(Clone)]
-struct RegisterPayload {
-    username: String,
-    password: String,
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct RegisterPayload {
+    pub username: String,
+    pub password: String,
 }
 
-#[derive(Clone)]
-struct RegisterSuccessPayload {
-    user_id: i32,
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct RegisterSuccessPayload {
+    pub user_id: i32,
 }
 
-#[derive(Clone)]
-struct RegisterFailedPayload {
-    message: String,
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub struct RegisterFailedPayload {
+    pub message: String,
 }
 
-struct AppState {
-    route: Route,
-    loading: bool,
-    user: Option<User>,
+pub struct AppState {
+    pub route: Route,
+    pub loading: bool,
+    pub error_message: Option<String>,
+    pub user: Option<User>,
 }
 
 impl Default for AppState {
@@ -73,13 +81,14 @@ impl Default for AppState {
         Self {
             route: Route::Login,
             loading: false,
+            error_message: None,
             user: None,
         }
     }
 }
 
 #[derive(Clone)]
-enum Msg {
+pub enum Msg {
     Login(LoginPayload),
     LoginSuccess(LoginSuccessPayload),
     LoginFailed(LoginFailedPayload),
@@ -105,7 +114,8 @@ fn reducer(state: &Rc<RefCell<AppState>>, action: Msg) -> Rc<RefCell<AppState>> 
             });
         }
 
-        Msg::LoginFailed(_) => {
+        Msg::LoginFailed(payload) => {
+            (*new_state.borrow_mut()).error_message = Some(payload.message);
             (*new_state.borrow_mut()).loading = false;
             (*new_state.borrow_mut()).user = None;
         }
@@ -118,7 +128,8 @@ fn reducer(state: &Rc<RefCell<AppState>>, action: Msg) -> Rc<RefCell<AppState>> 
             (*new_state.borrow_mut()).loading = false;
         }
 
-        Msg::RegisterFailed(_) => {
+        Msg::RegisterFailed(payload) => {
+            (*new_state.borrow_mut()).error_message = Some(payload.message);
             (*new_state.borrow_mut()).loading = false;
         }
 
@@ -141,45 +152,150 @@ fn root() -> Div {
         |stream| {
             stream
                 .filter(|msg| match msg {
-                    Msg::Login(_) | Msg::Register(_) => ready(true),
+                    Msg::Login(_) | Msg::Register(_) | Msg::LoginSuccess(_) | Msg::RegisterSuccess(_) | Msg::Logout => ready(true),
                     _ => ready(false),
                 })
-                .flat_map(|msg| match msg {
-                    Msg::Login(payload) => {
-                        ready(Msg::Logout).into_stream()
-                    }
-                    Msg::Register(payload) => {
-                        ready(Msg::Logout).into_stream()
-                    }
-                    _ => {
-                        ready(Msg::Logout).into_stream()
-                    }
-                })
+                .flat_map(|msg| req(msg).into_stream())
         },
     );
+    let (d1, d2, d3, d4, d5) = once(|| {
+        let d = Rc::new(dispatch);
+        (d.clone(), d.clone(), d.clone(), d.clone(), d.clone())
+    });
 
     let mut root = div();
 
-    // root = root.child(
-    //     mox! { <div>{% "hello world from moxie! ({}) ({})", ct.borrow(), input_value }</div> },
-    // );
-    // root = root.child(mox! {
-    //     <button button_type={ButtonType::CTA} on_click={move |_| {dispatch(Msg::Increment);}} text="Increment" />
-    // });
-    // root = root.child(mox! {
-    //     <text_input
-    //         oninput={move |ev| {
-    //             let event: &sys::Event = ev.as_ref();
-    //             let target = event.target().unwrap();
-    //             let input: sys::HtmlInputElement = target.dyn_into().unwrap();
-    //             let val = input.value();
-    //             set_input_value.set(val);
-    //         }}
-    //         value={format!("{}", input_value)}
-    //         placeholder="bar"
-    //         label="quxor"
-    //     />
-    // });
+    if app_state.borrow().loading {
+        root = root.child(
+            mox! { <div>{% "Loading..." }</div> },
+        );
+    } else {
+        if let Some(message) = &app_state.borrow().error_message {
+            root = root.child(
+                mox! { <div>{% "ERROR: {}", message }</div> },
+            );
+        }
+        match app_state.borrow().route {
+            Route::Login => {
+                let (username, set_username) = state(|| "".to_owned());
+                let (password, set_password) = state(|| "".to_owned());
+                root = root.child(
+                    mox! { <div>{% "Login:" }</div> },
+                );
+                root = root.child(mox! {
+                    <text_input
+                        oninput={move |ev| {
+                            let event: &sys::Event = ev.as_ref();
+                            let target = event.target().unwrap();
+                            let input: sys::HtmlInputElement = target.dyn_into().unwrap();
+                            let val = input.value();
+                            set_username.set(val);
+                        }}
+                        value={format!("{}", username)}
+                        placeholder="Enter your username here"
+                        label="Username:"
+                    />
+                });
+                root = root.child(mox! {
+                    <text_input
+                        input_type="password"
+                        oninput={move |ev| {
+                            let event: &sys::Event = ev.as_ref();
+                            let target = event.target().unwrap();
+                            let input: sys::HtmlInputElement = target.dyn_into().unwrap();
+                            let val = input.value();
+                            set_password.set(val);
+                        }}
+                        value={format!("{}", password)}
+                        placeholder="Enter your password here"
+                        label="Password:"
+                    />
+                });
+                root = root.child(mox! {
+                    <button
+                        button_type={ButtonType::CTA}
+                        on_click={move |_| {d1(Msg::Login(LoginPayload {
+                            username: username.to_string(),
+                            password: password.to_string()
+                        }));}}
+                        text="Login"
+                    />
+                });
+                root = root.child(mox! {
+                    <button
+                        button_type={ButtonType::Secondary} on_click={move |_| {d2(Msg::Navigate(Route::Register));}}
+                        text="Register"
+                    />
+                });
+            }
+    
+            Route::Register => {
+                let (username, set_username) = state(|| "".to_owned());
+                let (password, set_password) = state(|| "".to_owned());
+                root = root.child(
+                    mox! { <div>{% "Register:" }</div> },
+                );
+                root = root.child(mox! {
+                    <text_input
+                        oninput={move |ev| {
+                            let event: &sys::Event = ev.as_ref();
+                            let target = event.target().unwrap();
+                            let input: sys::HtmlInputElement = target.dyn_into().unwrap();
+                            let val = input.value();
+                            set_username.set(val);
+                        }}
+                        value={format!("{}", username)}
+                        placeholder="Enter your username here"
+                        label="Username:"
+                    />
+                });
+                root = root.child(mox! {
+                    <text_input
+                        input_type="password"
+                        oninput={move |ev| {
+                            let event: &sys::Event = ev.as_ref();
+                            let target = event.target().unwrap();
+                            let input: sys::HtmlInputElement = target.dyn_into().unwrap();
+                            let val = input.value();
+                            set_password.set(val);
+                        }}
+                        value={format!("{}", password)}
+                        placeholder="Enter your password here"
+                        label="Password:"
+                    />
+                });
+                root = root.child(mox! {
+                    <button
+                        button_type={ButtonType::CTA}
+                        on_click={move |_| {d3(Msg::Register(RegisterPayload {
+                            username: username.to_string(),
+                            password: password.to_string()
+                        }));}}
+                        text="Register"
+                    />
+                });
+                root = root.child(mox! {
+                    <button
+                        button_type={ButtonType::Secondary} on_click={move |_| {d4(Msg::Navigate(Route::Login));}}
+                        text="Login"
+                    />
+                });
+            }
+    
+            Route::Welcome => {
+                root = root.child(
+                    mox! { <div>{% "Welcome back, {}!", app_state.borrow().user.as_ref().map(|u| u.username.as_str()).unwrap_or("guest") }</div> },
+                );
+                root = root.child(mox! {
+                    <button
+                        button_type={ButtonType::Secondary} on_click={move |_| {d5(Msg::Logout);}}
+                        text="Logout"
+                    />
+                });
+            }
+        }
+    }
+
 
     root.build()
 }

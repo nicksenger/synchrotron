@@ -16,6 +16,7 @@ WORKDIR /usr/src/microbiome
 RUN USER=root cargo install cargo-make
 RUN USER=root cargo new api-gateway
 RUN USER=root cargo new schema --lib
+RUN USER=root cargo new frontend --lib
 RUN USER=root cargo new users-service
 COPY ./api-gateway/Cargo.toml /usr/src/microbiome/api-gateway/Cargo.toml
 COPY ./schema/Cargo.toml /usr/src/microbiome/schema/Cargo.toml
