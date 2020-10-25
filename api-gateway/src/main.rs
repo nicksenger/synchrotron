@@ -60,7 +60,10 @@ async fn main() -> io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
-            .data(AppData { schema: schema.clone(), user_channel: user_channel.clone() })
+            .data(AppData {
+                schema: schema.clone(),
+                user_channel: user_channel.clone(),
+            })
             .route("/graphql", post().to(graphql::handler::graphql))
             .route("/graphiql", get().to(graphql::handler::graphiql))
             .route("{path:.*}", get().to(index))

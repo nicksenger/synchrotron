@@ -55,7 +55,9 @@ fn root() -> Div {
 
     let mut root = div();
 
-    root = root.child(mox! { <div>{% "hello world from moxie! ({}) ({})", ct.borrow(), input_value }</div> });
+    root = root.child(
+        mox! { <div>{% "hello world from moxie! ({}) ({})", ct.borrow(), input_value }</div> },
+    );
     root = root.child(mox! {
         <button button_type={ButtonType::CTA} on_click={move |_| {dispatch(Msg::Increment);}} text="Increment" />
     });
