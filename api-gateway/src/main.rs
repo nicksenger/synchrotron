@@ -9,10 +9,7 @@ use actix_web::{
 use dotenv::dotenv;
 use structopt::StructOpt;
 
-mod data;
-mod entities;
-mod errors;
-mod graphql;
+use gateway::{graphql, AppData};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "microbiome_server")]
@@ -35,11 +32,6 @@ async fn index(req: HttpRequest) -> io::Result<NamedFile> {
     }
 }
 
-pub struct AppData {
-    pub schema: Arc<graphql::schema::Schema>,
-    pub user_channel: tonic::transport::Channel,
-}
-
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
     dotenv().ok();
@@ -60,7 +52,10 @@ async fn main() -> io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .wrap(Logger::default())
-            .data(AppData { schema: schema.clone(), user_channel: user_channel.clone() })
+            .data(AppData {
+                schema: schema.clone(),
+                user_channel: user_channel.clone(),
+            })
             .route("/graphql", post().to(graphql::handler::graphql))
             .route("/graphiql", get().to(graphql::handler::graphiql))
             .route("{path:.*}", get().to(index))

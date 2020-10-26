@@ -21,6 +21,10 @@ serde_json = "^1"
 structopt = "0.3.20"
 tonic = "0.3"
 
+[lib]
+name = "gateway"
+path = "src/lib.rs"
+
 [[bin]]
-name = "api-gateway"
+name = "gateway"
 path = "src/main.rs"

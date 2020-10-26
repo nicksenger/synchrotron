@@ -2,6 +2,7 @@
 
 members = [
   "api-gateway",
+  "frontend",
   "users-service",
   "schema"
 ]
