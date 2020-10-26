@@ -3,7 +3,7 @@ WORKDIR /usr/src/
 USER root
 
 # install rustup/cargo
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2020-10-25
 ENV PATH /root/.cargo/bin:$PATH
 
 # Add compilation target for later scratch container
