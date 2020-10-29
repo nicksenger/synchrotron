@@ -1,11 +1,8 @@
-use std::rc::Rc;
-
-use futures::{future::ready, FutureExt, Stream, StreamExt};
 use graphql_client::{GraphQLQuery, Response};
 
 use crate::{
     LoginFailedPayload, LoginPayload, LoginSuccessPayload, Msg, RegisterFailedPayload,
-    RegisterPayload, RegisterSuccessPayload, Route,
+    RegisterPayload, RegisterSuccessPayload,
 };
 
 #[derive(GraphQLQuery)]

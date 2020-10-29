@@ -102,7 +102,7 @@ pub enum Msg {
 
 fn reducer(state: &Rc<RefCell<AppState>>, msg: Rc<Msg>) -> Rc<RefCell<AppState>> {
     let new_state = state.clone();
-    match *msg {
+    match &*msg {
         Msg::Login(_) => {
             (*new_state.borrow_mut()).loading = true;
         }
@@ -110,13 +110,13 @@ fn reducer(state: &Rc<RefCell<AppState>>, msg: Rc<Msg>) -> Rc<RefCell<AppState>>
         Msg::LoginSuccess(payload) => {
             (*new_state.borrow_mut()).loading = false;
             (*new_state.borrow_mut()).user = Some(User {
-                username: payload.username,
-                token: payload.token,
+                username: payload.username.clone(),
+                token: payload.token.clone(),
             });
         }
 
         Msg::LoginFailed(payload) => {
-            (*new_state.borrow_mut()).error_message = Some(payload.message);
+            (*new_state.borrow_mut()).error_message = Some(payload.message.clone());
             (*new_state.borrow_mut()).loading = false;
             (*new_state.borrow_mut()).user = None;
         }
@@ -130,12 +130,12 @@ fn reducer(state: &Rc<RefCell<AppState>>, msg: Rc<Msg>) -> Rc<RefCell<AppState>>
         }
 
         Msg::RegisterFailed(payload) => {
-            (*new_state.borrow_mut()).error_message = Some(payload.message);
+            (*new_state.borrow_mut()).error_message = Some(payload.message.clone());
             (*new_state.borrow_mut()).loading = false;
         }
 
         Msg::Navigate(route) => {
-            (*new_state.borrow_mut()).route = route;
+            (*new_state.borrow_mut()).route = route.clone();
         }
 
         Msg::Logout => {
