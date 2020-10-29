@@ -1,23 +1,24 @@
-#![type_length_limit="1382035"]
+#![type_length_limit = "1382035"]
 
 use std::{cell::RefCell, rc::Rc};
 
 use fluorophore::{button, text_input, ButtonType};
-use futures::{future::ready, StreamExt, FutureExt};
+use futures::StreamExt;
 use mox::mox;
-use moxie::{state, once};
+use moxie::{load_once, once, state};
 use moxie_dom::{
     elements::text_content::{div, Div},
     prelude::*,
 };
-use moxie_streams::mox_stream;
+use moxie_streams::{combine_operators, mox_stream};
 use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
 mod operations;
+mod operators;
 
-use operations::req;
+use operators::{login_operator, navigation_operator, register_operator};
 
 #[wasm_bindgen(start)]
 pub fn begin() {
@@ -26,7 +27,7 @@ pub fn begin() {
 
 pub struct User {
     pub username: String,
-    pub token: String
+    pub token: String,
 }
 
 #[derive(Clone)]
@@ -96,12 +97,12 @@ pub enum Msg {
     RegisterSuccess(RegisterSuccessPayload),
     RegisterFailed(RegisterFailedPayload),
     Navigate(Route),
-    Logout
+    Logout,
 }
 
-fn reducer(state: &Rc<RefCell<AppState>>, action: Msg) -> Rc<RefCell<AppState>> {
+fn reducer(state: &Rc<RefCell<AppState>>, msg: Rc<Msg>) -> Rc<RefCell<AppState>> {
     let new_state = state.clone();
-    match action {
+    match &*msg {
         Msg::Login(_) => {
             (*new_state.borrow_mut()).loading = true;
         }
@@ -109,13 +110,13 @@ fn reducer(state: &Rc<RefCell<AppState>>, action: Msg) -> Rc<RefCell<AppState>> 
         Msg::LoginSuccess(payload) => {
             (*new_state.borrow_mut()).loading = false;
             (*new_state.borrow_mut()).user = Some(User {
-                username: payload.username,
-                token: payload.token
+                username: payload.username.clone(),
+                token: payload.token.clone(),
             });
         }
 
         Msg::LoginFailed(payload) => {
-            (*new_state.borrow_mut()).error_message = Some(payload.message);
+            (*new_state.borrow_mut()).error_message = Some(payload.message.clone());
             (*new_state.borrow_mut()).loading = false;
             (*new_state.borrow_mut()).user = None;
         }
@@ -129,16 +130,16 @@ fn reducer(state: &Rc<RefCell<AppState>>, action: Msg) -> Rc<RefCell<AppState>> 
         }
 
         Msg::RegisterFailed(payload) => {
-            (*new_state.borrow_mut()).error_message = Some(payload.message);
+            (*new_state.borrow_mut()).error_message = Some(payload.message.clone());
             (*new_state.borrow_mut()).loading = false;
         }
 
         Msg::Navigate(route) => {
-            (*new_state.borrow_mut()).route = route;
+            (*new_state.borrow_mut()).route = route.clone();
         }
 
         Msg::Logout => {
-            (*new_state.borrow_mut()).route = Route::Login;
+            (*new_state.borrow_mut()).user = None;
         }
     }
     new_state
@@ -146,18 +147,14 @@ fn reducer(state: &Rc<RefCell<AppState>>, action: Msg) -> Rc<RefCell<AppState>> 
 
 #[topo::nested]
 fn root() -> Div {
-    let (app_state, dispatch) = mox_stream(
-        Rc::new(RefCell::new(AppState::default())),
-        reducer,
-        |stream| {
-            stream
-                .filter(|msg| match msg {
-                    Msg::Login(_) | Msg::Register(_) | Msg::LoginSuccess(_) | Msg::RegisterSuccess(_) | Msg::Logout => ready(true),
-                    _ => ready(false),
-                })
-                .flat_map(|msg| req(msg).into_stream())
-        },
-    );
+    let (app_state, dispatch) =
+        mox_stream(Rc::new(RefCell::new(AppState::default())), reducer, || {
+            Box::new(combine_operators!(
+                login_operator,
+                register_operator,
+                navigation_operator
+            ))
+        });
     let (d1, d2, d3, d4, d5) = once(|| {
         let d = Rc::new(dispatch);
         (d.clone(), d.clone(), d.clone(), d.clone(), d.clone())
@@ -166,22 +163,16 @@ fn root() -> Div {
     let mut root = div();
 
     if app_state.borrow().loading {
-        root = root.child(
-            mox! { <div>{% "Loading..." }</div> },
-        );
+        root = root.child(mox! { <div>{% "Loading..." }</div> });
     } else {
         if let Some(message) = &app_state.borrow().error_message {
-            root = root.child(
-                mox! { <div>{% "ERROR: {}", message }</div> },
-            );
+            root = root.child(mox! { <div>{% "ERROR: {}", message }</div> });
         }
         match app_state.borrow().route {
             Route::Login => {
                 let (username, set_username) = state(|| "".to_owned());
                 let (password, set_password) = state(|| "".to_owned());
-                root = root.child(
-                    mox! { <div>{% "Login:" }</div> },
-                );
+                root = root.child(mox! { <div>{% "Login:" }</div> });
                 root = root.child(mox! {
                     <text_input
                         oninput={move |ev| {
@@ -228,13 +219,11 @@ fn root() -> Div {
                     />
                 });
             }
-    
+
             Route::Register => {
                 let (username, set_username) = state(|| "".to_owned());
                 let (password, set_password) = state(|| "".to_owned());
-                root = root.child(
-                    mox! { <div>{% "Register:" }</div> },
-                );
+                root = root.child(mox! { <div>{% "Register:" }</div> });
                 root = root.child(mox! {
                     <text_input
                         oninput={move |ev| {
@@ -281,7 +270,7 @@ fn root() -> Div {
                     />
                 });
             }
-    
+
             Route::Welcome => {
                 root = root.child(
                     mox! { <div>{% "Welcome back, {}!", app_state.borrow().user.as_ref().map(|u| u.username.as_str()).unwrap_or("guest") }</div> },
@@ -295,7 +284,6 @@ fn root() -> Div {
             }
         }
     }
-
 
     root.build()
 }
