@@ -16,6 +16,9 @@ service Users {
 
   // Authenticate with a JWT
   rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+
+  // Update a user's role in the system
+  rpc UpdateUserRole(UpdateUserRoleRequest) returns (UpdateUserRoleResponse);
 }
 
 // Role of a user in the system
@@ -75,4 +78,16 @@ message AuthenticateRequest {
 // Response from verifying a JWT
 message AuthenticateResponse {
   User user = 1;
+}
+
+// Request to update a user's role
+message UpdateUserRoleRequest {
+  string token = 1;
+  int32 user_id = 2;
+  UserRole new_role = 3;
+}
+
+// Response from updating a user's role
+message UpdateUserRoleResponse {
+  bool success = 1;
 }
