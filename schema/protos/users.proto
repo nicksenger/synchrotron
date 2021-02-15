@@ -82,7 +82,7 @@ message AuthenticateResponse {
 
 // Request to update a user's role
 message UpdateUserRoleRequest {
-  string token = 1;
+  User active_user = 1;
   int32 user_id = 2;
   UserRole new_role = 3;
 }

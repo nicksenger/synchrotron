@@ -27,7 +27,7 @@ pub async fn graphql(
         .get("Authorization")
         .and_then(|header| header.to_str().ok());
 
-    let user_id = if token.is_some() {
+    let user = if token.is_some() {
         user_data.authenticate(token.unwrap().to_owned()).await.ok()
     } else {
         None
@@ -35,12 +35,13 @@ pub async fn graphql(
 
     log::info!(
         "Processing request for user \"{}\".",
-        user_id
-            .map(|id| format!("{}", id))
+        user
+            .as_ref()
+            .map(|u| format!("{}", u.username))
             .unwrap_or("Anonymous".to_owned())
     );
 
-    let ctx = Context::new(user_id, Some(user_data));
+    let ctx = Context::new(user, Some(user_data));
     let res = data.execute(&st.schema, &ctx).await;
     let json = serde_json::to_string(&res).map_err(ErrorInternalServerError)?;
 

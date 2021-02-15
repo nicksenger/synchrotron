@@ -7,8 +7,10 @@ use crate::graphql::schema::Context;
 pub struct User {
     // ID of the user
     pub id: i32,
-    /// Usrname of the user
+    // Username of the user
     pub username: String,
+    // Role of the user
+    pub role: UserRole,
 }
 
 #[derive(juniper::GraphQLInputObject, Debug, Clone)]
@@ -18,6 +20,29 @@ pub struct NewUser {
     pub username: String,
     // Password for the new user
     pub password: String,
+}
+
+#[derive(juniper::GraphQLEnum, Debug, Clone)]
+pub enum UserRole {
+    Standard,
+    Moderator,
+    Administrator,
+}
+
+#[derive(juniper::GraphQLInputObject, Debug, Clone)]
+// Updating a user's role
+pub struct UpdateUserRole {
+    // ID of the user whose role should be updated
+    pub user_id: i32,
+    // New role for the user
+    pub new_role: UserRole,
+}
+
+#[derive(juniper::GraphQLObject, Debug, Clone)]
+/// Response to updating a user's role
+pub struct UpdateUserRoleResponse {
+    // Success flag
+    pub success: bool,
 }
 
 #[derive(juniper::GraphQLInputObject, Debug, Clone)]
@@ -52,6 +77,11 @@ impl From<schema::users::User> for User {
         User {
             id: x.id,
             username: x.username,
+            role: match x.role {
+                1 => UserRole::Moderator,
+                2 => UserRole::Administrator,
+                _ => UserRole::Standard,
+            },
         }
     }
 }

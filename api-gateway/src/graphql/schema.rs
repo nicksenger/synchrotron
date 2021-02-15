@@ -1,19 +1,20 @@
 use juniper::EmptySubscription;
 
 use super::{mutation::Mutation, query::Query};
+use schema::users::User;
 use crate::data::UserData;
 
 #[derive(Clone)]
 pub struct Context {
-    pub user_id: Option<i32>,
+    pub user: Option<User>,
     pub user_data: Option<UserData>,
 }
 
 impl juniper::Context for Context {}
 
 impl Context {
-    pub fn new(user_id: Option<i32>, user_data: Option<UserData>) -> Self {
-        Self { user_id, user_data }
+    pub fn new(user: Option<User>, user_data: Option<UserData>) -> Self {
+        Self { user, user_data }
     }
 }
 

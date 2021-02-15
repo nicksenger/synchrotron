@@ -10,7 +10,7 @@ use schema::users::{
     users_server::{Users, UsersServer},
     AuthenticateRequest, AuthenticateResponse, CreateUserRequest, CreateUserResponse,
     GetAllUsersRequest, GetTokenRequest, GetTokenResponse, GetUsersByIdsRequest,
-    GetUsersByIdsResponse, User, UserRole, UpdateUserRoleRequest, UpdateUserRoleResponse
+    GetUsersByIdsResponse, UpdateUserRoleRequest, UpdateUserRoleResponse, User, UserRole,
 };
 
 mod errors;
@@ -169,38 +169,29 @@ where
             user: Some(User {
                 username: user.username,
                 id: user.id,
-                role: user.user_role
+                role: user.user_role,
             }),
         }))
     }
 
     async fn update_user_role(
         &self,
-        request: Request<UpdateUserRoleRequest>
+        request: Request<UpdateUserRoleRequest>,
     ) -> Result<Response<UpdateUserRoleResponse>, Status> {
         let message = request.into_inner();
-        let result = jwt::verify_jwt(message.token).unwrap();
-
-        let user = sqlx::query!("SELECT * FROM users WHERE id=$1;", result.claims.user_id)
-            .fetch_one(&self.executor)
-            .await
-            .map_err(UsersServiceError::from)?;
-        
-        if user.user_role == UserRole::Administrator as i32 {
+        if message.active_user.map(|u| u.role).unwrap_or(0) == UserRole::Administrator as i32 {
             sqlx::query!(
                 "UPDATE users SET user_role=$1 WHERE id=$2;",
                 message.new_role,
                 message.user_id
-            ).execute(&self.executor)
-            .await.map_err(UsersServiceError::from)?;
+            )
+            .execute(&self.executor)
+            .await
+            .map_err(UsersServiceError::from)?;
 
-            Ok(Response::new(UpdateUserRoleResponse {
-                success: true,
-            }))
+            Ok(Response::new(UpdateUserRoleResponse { success: true }))
         } else {
-            Ok(Response::new(UpdateUserRoleResponse {
-                success: false
-            }))
+            Ok(Response::new(UpdateUserRoleResponse { success: false }))
         }
     }
 }

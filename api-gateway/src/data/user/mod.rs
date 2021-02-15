@@ -1,5 +1,5 @@
 use crate::{
-    entities::{Login, NewUser, User},
+    entities::{Login, NewUser, UpdateUserRole, User},
     errors::GatewayError,
 };
 
@@ -7,8 +7,10 @@ mod all_users;
 mod create_user;
 mod get_user_by_id;
 use get_user_by_id::{get_loader, UserLoader};
+use schema::users::UpdateUserRoleResponse;
 mod authenticate;
 mod login;
+mod update_user_role;
 
 #[derive(Clone)]
 pub struct UserData {
@@ -40,7 +42,15 @@ impl UserData {
         all_users::all_users(self.channel.clone()).await
     }
 
-    pub async fn authenticate(&self, token: String) -> Result<i32, GatewayError> {
+    pub async fn authenticate(&self, token: String) -> Result<schema::users::User, GatewayError> {
         authenticate::authenticate(token, self.channel.clone()).await
+    }
+
+    pub async fn update_user_role(
+        &self,
+        data: UpdateUserRole,
+        user: Option<schema::users::User>,
+    ) -> Result<UpdateUserRoleResponse, GatewayError> {
+        update_user_role::update_user_role(user, data, self.channel.clone()).await
     }
 }

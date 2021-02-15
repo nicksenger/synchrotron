@@ -1,18 +1,17 @@
-use schema::users::{users_client::UsersClient, AuthenticateRequest};
+use schema::users::{users_client::UsersClient, AuthenticateRequest, User};
 
 use crate::errors::GatewayError;
 
 pub async fn authenticate(
     token: String,
     channel: tonic::transport::Channel,
-) -> Result<i32, GatewayError> {
+) -> Result<User, GatewayError> {
     let mut client = UsersClient::new(channel);
     let request = tonic::Request::new(AuthenticateRequest { token });
-    let id = client
+    let result = client
         .authenticate(request)
         .await?
-        .map(|res| res.user.unwrap().id)
-        .into_inner();
+        .into_inner().user.unwrap();
 
-    Ok(id)
+    Ok(result)
 }
