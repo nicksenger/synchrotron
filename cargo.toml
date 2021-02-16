@@ -3,5 +3,6 @@
 members = [
   "api-gateway",
   "users-service",
+  "courses-service",
   "schema"
 ]

@@ -72,8 +72,8 @@ impl User {
     }
 }
 
-impl From<schema::users::User> for User {
-    fn from(x: schema::users::User) -> User {
+impl From<schema::shared::User> for User {
+    fn from(x: schema::shared::User) -> User {
         User {
             id: x.id,
             username: x.username,

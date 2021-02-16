@@ -1,6 +1,12 @@
-use schema::users::{users_client::UsersClient, UpdateUserRoleRequest, UpdateUserRoleResponse, User};
+use schema::{
+    shared::User,
+    users::{users_client::UsersClient, UpdateUserRoleRequest, UpdateUserRoleResponse},
+};
 
-use crate::{entities::{UpdateUserRole, UserRole}, errors::GatewayError};
+use crate::{
+    entities::{UpdateUserRole, UserRole},
+    errors::GatewayError,
+};
 
 pub async fn update_user_role(
     user: Option<User>,
@@ -12,9 +18,9 @@ pub async fn update_user_role(
         active_user: user,
         user_id: data.user_id,
         new_role: match data.new_role {
-          UserRole::Standard => 0,
-          UserRole::Moderator => 1,
-          UserRole::Administrator => 2,
+            UserRole::Standard => 0,
+            UserRole::Moderator => 1,
+            UserRole::Administrator => 2,
         },
     });
     let response = client.update_user_role(request).await?.into_inner();

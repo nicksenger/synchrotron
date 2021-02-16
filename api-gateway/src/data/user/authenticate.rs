@@ -1,4 +1,4 @@
-use schema::users::{users_client::UsersClient, AuthenticateRequest, User};
+use schema::{users::{users_client::UsersClient, AuthenticateRequest}, shared::User};
 
 use crate::errors::GatewayError;
 

@@ -6,11 +6,14 @@ use sqlx::postgres::{PgPoolOptions, Postgres};
 use tokio::sync::mpsc;
 use tonic::{transport::Server, Request, Response, Status};
 
-use schema::users::{
-    users_server::{Users, UsersServer},
-    AuthenticateRequest, AuthenticateResponse, CreateUserRequest, CreateUserResponse,
-    GetAllUsersRequest, GetTokenRequest, GetTokenResponse, GetUsersByIdsRequest,
-    GetUsersByIdsResponse, UpdateUserRoleRequest, UpdateUserRoleResponse, User, UserRole,
+use schema::{
+    shared::{User, UserRole},
+    users::{
+        users_server::{Users, UsersServer},
+        AuthenticateRequest, AuthenticateResponse, CreateUserRequest, CreateUserResponse,
+        GetAllUsersRequest, GetTokenRequest, GetTokenResponse, GetUsersByIdsRequest,
+        GetUsersByIdsResponse, UpdateUserRoleRequest, UpdateUserRoleResponse,
+    },
 };
 
 mod errors;

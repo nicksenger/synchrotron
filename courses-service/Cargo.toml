@@ -1,0 +1,21 @@
+[package]
+name = "courses-service"
+version = "0.1.0"
+authors = ["Nick Senger <dev@nsenger.com>"]
+edition = "2018"
+
+[dependencies]
+chrono = "0.4.19"
+dotenv = "0.15.0"
+env_logger = "0.7.1"
+log = "0.4"
+schema = { path = "../schema" }
+serde = { version = "^1", features = ["derive"] }
+sqlx = { version = "0.4.0-beta.1", default-features = false, features = [ "runtime-tokio", "macros", "postgres", "chrono" ] }
+tokio = { version = "0.2", features = ["macros"] }
+tonic = "0.3"
+
+
+[[bin]]
+name = "courses-service"
+path = "src/main.rs"

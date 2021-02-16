@@ -1,0 +1,209 @@
+syntax = "proto3";
+package courses;
+
+import "shared.proto";
+
+service Courses {
+  rpc GetDocuments(GetDocumentsRequest) returns (GetDocumentsResponse);
+  rpc GetDocumentsByIDs(GetDocumentsByIDsRequest) returns (GetDocumentsByIDsResponse);
+  rpc GetDocumentPages(GetDocumentPagesRequest) returns (GetDocumentPagesResponse);
+  rpc GetPagesByIDs(GetPagesByIDsRequest) returns (GetPagesByIDsResponse);
+  rpc GetDocumentTracks(GetDocumentTracksRequest) returns (GetDocumentTracksResponse);
+  rpc GetTracksByIDs(GetTracksByIDsRequest) returns (GetTracksByIDsResponse);
+  rpc GetDocumentBookmarks(GetDocumentBookmarksRequest) returns (GetDocumentBookmarksResponse);
+  rpc GetBookmarksByIDs(GetBookmarksByIDsRequest) returns (GetAnchorsByIDsResponse);
+  rpc GetPageAnchors(GetPageAnchorsRequest) returns (GetPageAnchorsResponse);
+  rpc GetAnchorsByIDs(GetAnchorsByIDsRequest) returns (GetAnchorsByIDsResponse);
+  rpc GetPageUserAnchors(GetPageUserAnchorsRequest) returns (GetPageUserAnchorsResponse);
+  rpc GetUserAnchorsByIDs(GetUserAnchorsByIDsRequest) returns (GetUserAnchorsByIDsResponse);
+}
+
+message Document {
+  int32 id = 1;
+  string name = 2;
+  int64 created_at = 3;
+  int64 updated_at = 4;
+}
+
+message GetDocumentsRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message GetDocumentsResponse {
+  repeated Document documents = 1;
+  int32 total = 2;
+}
+
+message GetDocumentsByIDsRequest {
+  repeated int32 ids = 1;
+}
+
+message GetDocumentsByIDsResponse {
+  repeated Document documents = 1;
+}
+
+message Page {
+  int32 id = 1;
+  int32 page_number = 2;
+  string image_path = 3;
+  float aspect_ratio = 4;
+  float height = 5;
+  int32 document_id = 6;
+}
+
+message GetDocumentPagesRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message GetDocumentPagesResponse {
+  repeated Page pages = 1;
+  int32 total = 2;
+}
+
+message GetPagesByIDsRequest {
+  repeated int32 ids = 1;
+}
+
+message GetPagesByIDsResponse {
+  repeated Page pages = 1;
+}
+
+message Track {
+  int32 id = 1;
+  int32 track_number = 2;
+  string title = 3;
+  string audio_path = 4;
+  int32 document_id = 5;
+}
+
+message GetDocumentTracksRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message GetDocumentTracksResponse {
+  repeated Track tracks = 1;
+  int32 total = 2;
+}
+
+message GetTracksByIDsRequest {
+  repeated int32 ids = 1;
+}
+
+message GetTracksByIDsResponse {
+  repeated Track tracks = 1;
+}
+
+message Bookmark {
+  int32 id = 1;
+  string title = 2;
+  int32 page_id = 3;
+  int32 document_id = 4;
+}
+
+message GetDocumentBookmarksRequest {
+  int32 limit = 1;
+  int32 offset = 2;
+}
+
+message GetDocumentBookmarksResponse {
+  repeated Bookmark bookmarks = 1;
+  int32 total = 2;
+}
+
+message GetBookmarksByIDsRequest {
+  repeated int32 ids = 1;
+}
+
+message GetBookmarksByIDsResponse {
+  repeated Bookmark bookmarks = 1;
+}
+
+message Anchor {
+  int32 id = 1;
+  string title = 2;
+  float track_time = 3;
+  float position_top = 4;
+  float position_left = 5;
+  int32 page_id = 6;
+  int32 track_id = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+}
+
+message GetPageAnchorsRequest {
+  int32 page_id = 1;
+}
+
+message GetPageAnchorsResponse {
+  repeated Anchor anchors = 1;
+}
+
+message GetAnchorsByIDsRequest {
+  repeated int32 ids = 1;
+}
+
+message GetAnchorsByIDsResponse {
+  repeated Anchor anchors = 1;
+}
+
+message UserAnchor {
+  int32 id = 1;
+  string title = 2;
+  float track_time = 3;
+  float position_top = 4;
+  float position_left = 5;
+  int32 page_id = 6;
+  int32 track_id = 7;
+  int64 created_at = 8;
+  int64 updated_at = 9;
+  int32 owner = 10;
+}
+
+message GetPageUserAnchorsRequest {
+  int32 page_id = 1;
+}
+
+message GetPageUserAnchorsResponse {
+  repeated UserAnchor user_anchors = 1;
+}
+
+message GetUserAnchorsByIDsRequest {
+  repeated int32 ids = 1;
+}
+
+message GetUserAnchorsByIDsResponse {
+  repeated UserAnchor user_anchors = 1;
+}
+
+message CreateUserAnchorRequest {
+  shared.User active_user = 1;
+  string title = 2;
+  float track_time = 3;
+  float position_top = 4;
+  float position_left = 5;
+  int32 page_id = 6;
+  int32 track_id = 7;
+}
+
+message DeleteUserAnchorRequest {
+  shared.User active_user = 1;
+  int32 id = 2;
+}
+
+message CreateAnchorRequest {
+  shared.User active_user = 1;
+  string title = 2;
+  float track_time = 3;
+  float position_top = 4;
+  float position_left = 5;
+  int32 page_id = 6;
+  int32 track_id = 7;
+}
+
+message DeleteAnchorRequest {
+  shared.User active_user = 1;
+  int32 id = 2;
+}

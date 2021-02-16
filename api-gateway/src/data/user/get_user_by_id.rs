@@ -38,7 +38,7 @@ impl BatchFn<i32, User> for UserBatcher {
         let client = UsersClient::new(self.channel.clone());
 
         let mut anchor_map = HashMap::new();
-        get_user_by_ids(&mut anchor_map, keys.to_vec(), client).await;
+        let _ = get_user_by_ids(&mut anchor_map, keys.to_vec(), client).await;
         anchor_map
     }
 }

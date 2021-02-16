@@ -42,14 +42,14 @@ impl UserData {
         all_users::all_users(self.channel.clone()).await
     }
 
-    pub async fn authenticate(&self, token: String) -> Result<schema::users::User, GatewayError> {
+    pub async fn authenticate(&self, token: String) -> Result<schema::shared::User, GatewayError> {
         authenticate::authenticate(token, self.channel.clone()).await
     }
 
     pub async fn update_user_role(
         &self,
         data: UpdateUserRole,
-        user: Option<schema::users::User>,
+        user: Option<schema::shared::User>,
     ) -> Result<UpdateUserRoleResponse, GatewayError> {
         update_user_role::update_user_role(user, data, self.channel.clone()).await
     }

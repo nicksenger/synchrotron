@@ -1,7 +1,7 @@
 use juniper::EmptySubscription;
 
 use super::{mutation::Mutation, query::Query};
-use schema::users::User;
+use schema::shared::User;
 use crate::data::UserData;
 
 #[derive(Clone)]

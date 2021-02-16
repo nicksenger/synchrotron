@@ -29,17 +29,44 @@ services:
       - 50051:50051
     env_file: users-service/.env
 
+  courses-db:
+    image: postgres:12
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: courses
+    ports:
+      - 5433:5432
+    volumes:
+      - microbiome_courses_db_volume:/var/lib/postgresql/data
+  
+  courses-service:
+    build:
+      context: ./courses-service/
+      dockerfile: Dockerfile
+    depends_on:
+      - base
+      - courses-db
+    environment:
+      DATABASE_URL: postgres://postgres:postgres@users-db:5433/courses
+    ports:
+      - 50052:50051
+    env_file: courses-service/.env
+
   api-gateway:
     build:
       context: ./api-gateway/
       dockerfile: Dockerfile
     environment:
       USERS_SERVICE_URI: http://users-service:50051
+      COURSES_SERVICE_URI: http://courses-service:50052
     depends_on:
       - base
       - users-service
+      - courses-service
     ports:
       - 8000:8000
 
 volumes:
   microbiome_users_db_volume:
+  microbiome_courses_db_volume:

@@ -1,6 +1,8 @@
 syntax = "proto3";
 package users;
 
+import "shared.proto";
+
 service Users {
   // Create a new user in the system
   rpc CreateUser(CreateUserRequest) returns (CreateUserResponse);
@@ -12,27 +14,13 @@ service Users {
   rpc GetUsersByIds(GetUsersByIdsRequest) returns (GetUsersByIdsResponse);
 
   // Get data about all users in the system
-  rpc GetAllUsers(GetAllUsersRequest) returns (stream User);
+  rpc GetAllUsers(GetAllUsersRequest) returns (stream shared.User);
 
   // Authenticate with a JWT
   rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
 
   // Update a user's role in the system
   rpc UpdateUserRole(UpdateUserRoleRequest) returns (UpdateUserRoleResponse);
-}
-
-// Role of a user in the system
-enum UserRole {
-  USER_ROLE_STANDARD = 0;
-  USER_ROLE_MODERATOR = 1;
-  USER_ROLE_ADMINISTRATOR = 2;
-}
-
-// A registered user
-message User {
-  int32 id = 1; // ID of the user
-  string username = 2; // Name of the user
-  UserRole role = 3; // Role of the user
 }
 
 // Request to create a new user
@@ -43,7 +31,7 @@ message CreateUserRequest {
 
 // Successful response from creating a user
 message CreateUserResponse {
-  User user = 1;
+  shared.User user = 1;
 }
 
 // Request to authenticate as a specified user
@@ -64,7 +52,7 @@ message GetUsersByIdsRequest {
 
 // Successful response from getting users by IDs
 message GetUsersByIdsResponse {
-  repeated User users = 1; // Users corresponding to the requested IDs
+  repeated shared.User users = 1; // Users corresponding to the requested IDs
 }
 
 // Request to get information about all users in the system
@@ -77,14 +65,14 @@ message AuthenticateRequest {
 
 // Response from verifying a JWT
 message AuthenticateResponse {
-  User user = 1;
+  shared.User user = 1;
 }
 
 // Request to update a user's role
 message UpdateUserRoleRequest {
-  User active_user = 1;
+  shared.User active_user = 1;
   int32 user_id = 2;
-  UserRole new_role = 3;
+  shared.UserRole new_role = 3;
 }
 
 // Response from updating a user's role

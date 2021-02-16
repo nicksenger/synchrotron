@@ -1,0 +1,16 @@
+syntax = "proto3";
+package shared;
+
+// Role of a user in the system
+enum UserRole {
+  USER_ROLE_STANDARD = 0;
+  USER_ROLE_MODERATOR = 1;
+  USER_ROLE_ADMINISTRATOR = 2;
+}
+
+// A registered user
+message User {
+  int32 id = 1; // ID of the user
+  string username = 2; // Name of the user
+  UserRole role = 3; // Role of the user
+}
