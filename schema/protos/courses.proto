@@ -4,25 +4,45 @@ package courses;
 import "shared.proto";
 
 service Courses {
+  // Gets a list of course documents
   rpc GetDocuments(GetDocumentsRequest) returns (GetDocumentsResponse);
-  rpc GetDocumentsByIDs(GetDocumentsByIDsRequest) returns (GetDocumentsByIDsResponse);
+  // Gets documents corresponding to the provided set of IDs
+  rpc GetDocumentsByIds(GetDocumentsByIDsRequest) returns (GetDocumentsByIDsResponse);
+  // Gets a list of pages for a specified document
   rpc GetDocumentPages(GetDocumentPagesRequest) returns (GetDocumentPagesResponse);
-  rpc GetPagesByIDs(GetPagesByIDsRequest) returns (GetPagesByIDsResponse);
+  // Gets pages corresponding to the provided set of IDs
+  rpc GetPagesByIds(GetPagesByIDsRequest) returns (GetPagesByIDsResponse);
+  // Gets a list of tracks for a specified document
   rpc GetDocumentTracks(GetDocumentTracksRequest) returns (GetDocumentTracksResponse);
-  rpc GetTracksByIDs(GetTracksByIDsRequest) returns (GetTracksByIDsResponse);
+  // Gets tracks corresponding to the provided set of IDs
+  rpc GetTracksByIds(GetTracksByIDsRequest) returns (GetTracksByIDsResponse);
+  // Gets a list of bookmarks for a specified document
   rpc GetDocumentBookmarks(GetDocumentBookmarksRequest) returns (GetDocumentBookmarksResponse);
-  rpc GetBookmarksByIDs(GetBookmarksByIDsRequest) returns (GetAnchorsByIDsResponse);
+  // Gets bookmarks corresponding to the provided set of IDs
+  rpc GetBookmarksByIds(GetBookmarksByIDsRequest) returns (GetBookmarksByIDsResponse);
+  // Get a list of anchors for the specified page
   rpc GetPageAnchors(GetPageAnchorsRequest) returns (GetPageAnchorsResponse);
-  rpc GetAnchorsByIDs(GetAnchorsByIDsRequest) returns (GetAnchorsByIDsResponse);
+  // Gets anchors corresponding to a provided set of IDs
+  rpc GetAnchorsByIds(GetAnchorsByIDsRequest) returns (GetAnchorsByIDsResponse);
+  // Gets a list of user anchors for the specified page
   rpc GetPageUserAnchors(GetPageUserAnchorsRequest) returns (GetPageUserAnchorsResponse);
-  rpc GetUserAnchorsByIDs(GetUserAnchorsByIDsRequest) returns (GetUserAnchorsByIDsResponse);
+  // Gets user anchors corresponding to a provided set of IDs
+  rpc GetUserAnchorsByIds(GetUserAnchorsByIDsRequest) returns (GetUserAnchorsByIDsResponse);
+  // Creates an anchor mapping a specified position on a page to a track time
+  rpc CreateAnchor(CreateAnchorRequest) returns (CreateAnchorResponse);
+  // Deletes an anchor
+  rpc DeleteAnchor(DeleteAnchorRequest) returns (DeleteAnchorResponse);
+  // Creates a user anchor mapping a specified position on a page to a track time
+  rpc CreateUserAnchor(CreateUserAnchorRequest) returns (CreateUserAnchorResponse);
+  // Deletes a user anchor
+  rpc DeleteUserAnchor(DeleteUserAnchorRequest) returns (DeleteUserAnchorResponse);
 }
 
 message Document {
   int32 id = 1;
-  string name = 2;
-  int64 created_at = 3;
-  int64 updated_at = 4;
+  string title = 2;
+  string created_at = 3;
+  string updated_at = 4;
 }
 
 message GetDocumentsRequest {
@@ -53,8 +73,9 @@ message Page {
 }
 
 message GetDocumentPagesRequest {
-  int32 limit = 1;
-  int32 offset = 2;
+  int32 document_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
 }
 
 message GetDocumentPagesResponse {
@@ -79,8 +100,9 @@ message Track {
 }
 
 message GetDocumentTracksRequest {
-  int32 limit = 1;
-  int32 offset = 2;
+  int32 document_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
 }
 
 message GetDocumentTracksResponse {
@@ -104,8 +126,9 @@ message Bookmark {
 }
 
 message GetDocumentBookmarksRequest {
-  int32 limit = 1;
-  int32 offset = 2;
+  int32 document_id = 1;
+  int32 limit = 2;
+  int32 offset = 3;
 }
 
 message GetDocumentBookmarksResponse {
@@ -129,8 +152,8 @@ message Anchor {
   float position_left = 5;
   int32 page_id = 6;
   int32 track_id = 7;
-  int64 created_at = 8;
-  int64 updated_at = 9;
+  string created_at = 8;
+  string updated_at = 9;
 }
 
 message GetPageAnchorsRequest {
@@ -157,8 +180,8 @@ message UserAnchor {
   float position_left = 5;
   int32 page_id = 6;
   int32 track_id = 7;
-  int64 created_at = 8;
-  int64 updated_at = 9;
+  string created_at = 8;
+  string updated_at = 9;
   int32 owner = 10;
 }
 
@@ -188,9 +211,17 @@ message CreateUserAnchorRequest {
   int32 track_id = 7;
 }
 
+message CreateUserAnchorResponse {
+  UserAnchor user_anchor = 1;
+}
+
 message DeleteUserAnchorRequest {
   shared.User active_user = 1;
   int32 id = 2;
+}
+
+message DeleteUserAnchorResponse {
+  bool success = 1;
 }
 
 message CreateAnchorRequest {
@@ -203,7 +234,15 @@ message CreateAnchorRequest {
   int32 track_id = 7;
 }
 
+message CreateAnchorResponse {
+  Anchor anchor = 1;
+}
+
 message DeleteAnchorRequest {
   shared.User active_user = 1;
   int32 id = 2;
+}
+
+message DeleteAnchorResponse {
+  bool success = 1;
 }

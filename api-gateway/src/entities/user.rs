@@ -24,8 +24,11 @@ pub struct NewUser {
 
 #[derive(juniper::GraphQLEnum, Debug, Clone)]
 pub enum UserRole {
+    // A standard user in the system: has privileges for everyday functionality
     Standard,
+    // A moderator: in addition to the standard privileges, may manage global data in the system
     Moderator,
+    // An administrator: has full system capabilities
     Administrator,
 }
 

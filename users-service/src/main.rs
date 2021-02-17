@@ -50,27 +50,22 @@ where
         request: Request<CreateUserRequest>,
     ) -> Result<Response<CreateUserResponse>, Status> {
         let req = request.into_inner();
-        (sqlx::query!(
+        let user = (sqlx::query!(
             "INSERT INTO users (
                 username,
                 password,
                 created_at,
                 updated_at,
                 user_role
-            ) VALUES ($1, $2, $3, $4, $5);",
+            ) VALUES ($1, $2, $3, $4, $5) RETURNING *;",
             req.username,
             hash(&req.password, 10).unwrap(),
             Utc::now(),
             Utc::now(),
             UserRole::Standard as i32
         )
-        .execute(&self.executor)
+        .fetch_one(&self.executor)
         .await)
-            .map_err(UsersServiceError::from)?;
-
-        let user = sqlx::query!("SELECT * FROM users WHERE username=$1;", req.username)
-            .fetch_one(&self.executor)
-            .await
             .map_err(UsersServiceError::from)?;
 
         Ok(Response::new(CreateUserResponse {
