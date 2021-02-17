@@ -1,6 +1,6 @@
 use std::convert::From;
 
-use super::Document;
+use super::{Document, Page};
 use crate::graphql::schema::Context;
 
 #[derive(Debug, Clone)]
@@ -37,12 +37,22 @@ impl Bookmark {
         self.title.as_str()
     }
 
-    pub fn page(&self, context: &Context) -> i32 {
-        self.page_id
+    pub async fn page(&self, context: &Context) -> Page {
+        context
+            .page_data
+            .as_ref()
+            .unwrap()
+            .pages_by_id(self.page_id)
+            .await
     }
 
     pub async fn document(&self, context: &Context) -> Document {
-        context.document_data.as_ref().unwrap().documents_by_id(self.document_id).await
+        context
+            .document_data
+            .as_ref()
+            .unwrap()
+            .documents_by_id(self.document_id)
+            .await
     }
 }
 

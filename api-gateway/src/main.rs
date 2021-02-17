@@ -45,6 +45,12 @@ async fn main() -> io::Result<()> {
             .connect()
             .await
             .unwrap();
+    let courses_channel =
+        tonic::transport::Channel::from_shared(env::var("COURSES_SERVICE_URI").unwrap())
+            .unwrap()
+            .connect()
+            .await
+            .unwrap();
 
     let schema = Arc::new(graphql::schema::create_schema());
 
@@ -55,6 +61,7 @@ async fn main() -> io::Result<()> {
             .data(AppData {
                 schema: schema.clone(),
                 user_channel: user_channel.clone(),
+                courses_channel: courses_channel.clone(),
             })
             .route("/graphql", post().to(graphql::handler::graphql))
             .route("/graphiql", get().to(graphql::handler::graphiql))

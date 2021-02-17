@@ -6,6 +6,7 @@ pub mod errors;
 pub mod graphql;
 
 pub struct AppData {
-  pub schema: Arc<graphql::schema::Schema>,
-  pub user_channel: tonic::transport::Channel,
+    pub schema: Arc<graphql::schema::Schema>,
+    pub user_channel: tonic::transport::Channel,
+    pub courses_channel: tonic::transport::Channel,
 }

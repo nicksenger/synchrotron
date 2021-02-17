@@ -1,7 +1,7 @@
 use chrono::{DateTime, FixedOffset};
 use std::convert::From;
 
-use super::{Bookmark, DocumentBookmarks};
+use super::{Bookmark, DocumentBookmarks, DocumentPages, DocumentTracks, Page, Track};
 use crate::graphql::schema::Context;
 
 #[derive(Debug, Clone)]
@@ -53,7 +53,37 @@ impl Document {
                 document_id: self.id,
                 limit,
                 offset,
-            }).await.unwrap()
+            })
+            .await
+            .unwrap()
+    }
+
+    pub async fn pages(&self, limit: i32, offset: i32, context: &Context) -> Vec<Page> {
+        context
+            .page_data
+            .as_ref()
+            .unwrap()
+            .document_pages(DocumentPages {
+                document_id: self.id,
+                limit,
+                offset,
+            })
+            .await
+            .unwrap()
+    }
+
+    pub async fn tracks(&self, limit: i32, offset: i32, context: &Context) -> Vec<Track> {
+        context
+            .track_data
+            .as_ref()
+            .unwrap()
+            .document_tracks(DocumentTracks {
+                document_id: self.id,
+                limit,
+                offset,
+            })
+            .await
+            .unwrap()
     }
 }
 

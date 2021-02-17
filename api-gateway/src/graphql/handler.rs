@@ -7,7 +7,7 @@ use juniper::http::{graphiql::graphiql_source, GraphQLRequest};
 
 use super::schema::Context;
 use crate::{
-    data::{BookmarkData, DocumentData, UserData},
+    data::{BookmarkData, DocumentData, PageData, UserData, TrackData},
     AppData,
 };
 
@@ -24,8 +24,10 @@ pub async fn graphql(
     data: Json<GraphQLRequest>,
 ) -> Result<HttpResponse, Error> {
     let user_data = UserData::new(st.user_channel.clone());
-    let document_data = DocumentData::new(st.user_channel.clone());
-    let bookmark_data = BookmarkData::new(st.user_channel.clone());
+    let document_data = DocumentData::new(st.courses_channel.clone());
+    let bookmark_data = BookmarkData::new(st.courses_channel.clone());
+    let page_data = PageData::new(st.courses_channel.clone());
+    let track_data = TrackData::new(st.courses_channel.clone());
 
     let token = req
         .headers()
@@ -50,6 +52,8 @@ pub async fn graphql(
         Some(user_data),
         Some(document_data),
         Some(bookmark_data),
+        Some(page_data),
+        Some(track_data)
     );
     let res = data.execute(&st.schema, &ctx).await;
     let json = serde_json::to_string(&res).map_err(ErrorInternalServerError)?;

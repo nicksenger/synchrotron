@@ -1,7 +1,7 @@
 use juniper::EmptySubscription;
 
 use super::{mutation::Mutation, query::Query};
-use crate::data::{DocumentData, UserData, BookmarkData};
+use crate::data::{BookmarkData, DocumentData, PageData, TrackData, UserData};
 use schema::shared::User;
 
 #[derive(Clone)]
@@ -10,6 +10,8 @@ pub struct Context {
     pub user_data: Option<UserData>,
     pub document_data: Option<DocumentData>,
     pub bookmark_data: Option<BookmarkData>,
+    pub page_data: Option<PageData>,
+    pub track_data: Option<TrackData>,
 }
 
 impl juniper::Context for Context {}
@@ -20,12 +22,16 @@ impl Context {
         user_data: Option<UserData>,
         document_data: Option<DocumentData>,
         bookmark_data: Option<BookmarkData>,
+        page_data: Option<PageData>,
+        track_data: Option<TrackData>,
     ) -> Self {
         Self {
             user,
             user_data,
             document_data,
-            bookmark_data
+            bookmark_data,
+            page_data,
+            track_data,
         }
     }
 }
