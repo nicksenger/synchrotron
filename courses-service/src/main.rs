@@ -414,14 +414,18 @@ where
                     position_top,
                     position_left,
                     document_page,
-                    track
-                ) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *;",
+                    track,
+                    created_at,
+                    updated_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *;",
                 req.title,
                 req.track_time,
                 req.position_top,
                 req.position_left,
                 req.page_id,
-                req.track_id
+                req.track_id,
+                chrono::Utc::now(),
+                chrono::Utc::now()
             )
             .fetch_one(&self.executor)
             .await)
@@ -462,15 +466,19 @@ where
                     position_left,
                     document_page,
                     track,
-                    owning_user
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *;",
+                    owning_user,
+                    created_at,
+                    updated_at
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *;",
                 req.title,
                 req.track_time,
                 req.position_top,
                 req.position_left,
                 req.page_id,
                 req.track_id,
-                user.id
+                user.id,
+                chrono::Utc::now(),
+                chrono::Utc::now()
             )
             .fetch_one(&self.executor)
             .await)

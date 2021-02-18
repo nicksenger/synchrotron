@@ -1,6 +1,6 @@
 use std::convert::From;
 
-use super::{Anchor, Document, PageAnchors};
+use super::{Anchor, Document, PageAnchors, PageUserAnchors, UserAnchor};
 use crate::graphql::schema::Context;
 
 #[derive(Debug, Clone)]
@@ -62,6 +62,16 @@ impl Page {
             .as_ref()
             .unwrap()
             .page_anchors(PageAnchors { page_id: self.id })
+            .await
+            .unwrap()
+    }
+
+    pub async fn user_anchors(&self, context: &Context) -> Vec<UserAnchor> {
+        context
+            .user_anchor_data
+            .as_ref()
+            .unwrap()
+            .page_user_anchors(PageUserAnchors { page_id: self.id })
             .await
             .unwrap()
     }

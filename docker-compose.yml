@@ -48,7 +48,7 @@ services:
       - base
       - courses-db
     environment:
-      DATABASE_URL: postgres://postgres:postgres@users-db:5433/courses
+      DATABASE_URL: postgres://postgres:postgres@courses-db:5432/courses
     ports:
       - 50052:50051
     env_file: courses-service/.env
@@ -59,7 +59,7 @@ services:
       dockerfile: Dockerfile
     environment:
       USERS_SERVICE_URI: http://users-service:50051
-      COURSES_SERVICE_URI: http://courses-service:50052
+      COURSES_SERVICE_URI: http://courses-service:50051
     depends_on:
       - base
       - users-service
