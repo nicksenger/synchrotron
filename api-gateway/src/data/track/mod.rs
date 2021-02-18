@@ -22,7 +22,7 @@ impl TrackData {
       }
   }
 
-  pub async fn pages_by_id(&self, id: i32) -> Track {
+  pub async fn tracks_by_id(&self, id: i32) -> Track {
       self.tracks_by_id.load(id).await
   }
 

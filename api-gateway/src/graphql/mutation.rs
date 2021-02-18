@@ -1,6 +1,7 @@
 use super::schema::Context;
 use crate::entities::{
-    Login, LoginResponse, NewUser, UpdateUserRole, UpdateUserRoleResponse, User,
+    Anchor, CreateAnchor, DeleteAnchor, DeleteAnchorResponse, Login, LoginResponse, NewUser,
+    UpdateUserRole, UpdateUserRoleResponse, User,
 };
 use juniper::FieldResult;
 
@@ -30,5 +31,28 @@ impl Mutation {
         Ok(UpdateUserRoleResponse {
             success: response.success,
         })
+    }
+
+    pub async fn create_anchor(ctx: &Context, data: CreateAnchor) -> FieldResult<Anchor> {
+        let response = ctx
+            .anchor_data
+            .as_ref()
+            .unwrap()
+            .create_anchor(ctx.user.clone(), data)
+            .await?;
+        Ok(response)
+    }
+
+    pub async fn delete_anchor(
+        ctx: &Context,
+        data: DeleteAnchor,
+    ) -> FieldResult<DeleteAnchorResponse> {
+        let response = ctx
+            .anchor_data
+            .as_ref()
+            .unwrap()
+            .delete_anchor(ctx.user.clone(), data)
+            .await?;
+        Ok(response)
     }
 }
