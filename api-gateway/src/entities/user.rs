@@ -49,6 +49,17 @@ pub struct LoginResponse {
 }
 
 #[juniper::graphql_object(Context = Context)]
+impl LoginResponse {
+    pub fn token(&self) -> &str {
+        self.token.as_str()
+    }
+
+    pub fn user(&self) -> &User {
+        &self.user
+    }
+}
+
+#[juniper::graphql_object(Context = Context)]
 impl User {
     pub fn id(&self) -> i32 {
         self.id
@@ -74,12 +85,5 @@ impl From<schema::shared::User> for User {
                 _ => UserRole::Standard,
             },
         }
-    }
-}
-
-#[juniper::graphql_object(Context = Context)]
-impl LoginResponse {
-    pub fn token(&self) -> &str {
-        self.token.as_str()
     }
 }
