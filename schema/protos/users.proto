@@ -43,6 +43,7 @@ message GetTokenRequest {
 // Successful response from authenticating
 message GetTokenResponse {
   string token = 1; // Authorization token to use for making requests
+  shared.User user = 2; // User that just authenticated
 }
 
 // Request to get information for one or more users by their IDs

@@ -44,6 +44,8 @@ pub struct UpdateUserRoleResponse {
 pub struct LoginResponse {
     // Token
     pub token: String,
+    // User
+    pub user: User,
 }
 
 #[juniper::graphql_object(Context = Context)]
@@ -54,6 +56,10 @@ impl User {
 
     pub fn username(&self) -> &str {
         self.username.as_str()
+    }
+
+    pub fn role(&self) -> &UserRole {
+        &self.role
     }
 }
 

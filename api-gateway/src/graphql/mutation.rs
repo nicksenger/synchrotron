@@ -19,13 +19,13 @@ impl Mutation {
         username: String,
         password: String,
     ) -> FieldResult<LoginResponse> {
-        let token = ctx
+        let (token, user) = ctx
             .user_data
             .as_ref()
             .unwrap()
             .login(username, password)
             .await?;
-        Ok(LoginResponse { token })
+        Ok(LoginResponse { token, user })
     }
 
     pub async fn update_user_role(

@@ -34,7 +34,7 @@ impl UserData {
         create_user::create_user(data, self.channel.clone()).await
     }
 
-    pub async fn login(&self, username: String, password: String) -> Result<String, GatewayError> {
+    pub async fn login(&self, username: String, password: String) -> Result<(String, User), GatewayError> {
         login::login(username, password, self.channel.clone()).await
     }
 

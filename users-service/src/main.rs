@@ -89,6 +89,11 @@ where
         if verify(req.password, user.password.as_str()).map_err(UsersServiceError::from)? {
             Ok(Response::new(GetTokenResponse {
                 token: jwt::encode_jwt(user.id, 30).unwrap(),
+                user: Some(User {
+                    id: user.id,
+                    username: user.username,
+                    role: user.user_role
+                })
             }))
         } else {
             Err(Status::permission_denied("Invalid login"))
