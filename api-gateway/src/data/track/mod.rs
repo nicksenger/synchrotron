@@ -1,9 +1,6 @@
 use schema::shared::User;
 
-use crate::{
-    entities::{DocumentTracks, Track},
-    errors::GatewayError,
-};
+use crate::{entities::Track, errors::GatewayError};
 
 mod document_tracks;
 mod tracks_by_id;
@@ -29,14 +26,13 @@ impl TrackData {
         self.tracks_by_id.load(id).await
     }
 
-    pub async fn document_tracks(&self, data: DocumentTracks) -> Result<Vec<Track>, GatewayError> {
-        document_tracks::document_tracks(
-            self.channel.clone(),
-            data.document_id,
-            data.limit,
-            data.offset,
-        )
-        .await
+    pub async fn document_tracks(
+        &self,
+        document_id: i32,
+        limit: i32,
+        offset: i32,
+    ) -> Result<Vec<Track>, GatewayError> {
+        document_tracks::document_tracks(self.channel.clone(), document_id, limit, offset).await
     }
 
     pub async fn update_track_title(

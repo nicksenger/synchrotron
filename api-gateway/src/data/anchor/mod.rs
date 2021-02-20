@@ -1,5 +1,5 @@
 use crate::{
-    entities::{Anchor, CreateAnchor, DeleteAnchor, DeleteAnchorResponse, PageAnchors},
+    entities::{Anchor, CreateAnchor, DeleteAnchorResponse},
     errors::GatewayError,
 };
 use schema::shared::User;
@@ -29,8 +29,8 @@ impl AnchorData {
         self.anchors_by_id.load(id).await
     }
 
-    pub async fn page_anchors(&self, data: PageAnchors) -> Result<Vec<Anchor>, GatewayError> {
-        page_anchors::page_anchors(self.channel.clone(), data.page_id).await
+    pub async fn page_anchors(&self, page_id: i32) -> Result<Vec<Anchor>, GatewayError> {
+        page_anchors::page_anchors(self.channel.clone(), page_id).await
     }
 
     pub async fn create_anchor(
@@ -45,10 +45,9 @@ impl AnchorData {
     pub async fn delete_anchor(
         &self,
         user: Option<User>,
-        data: DeleteAnchor,
+        anchor_id: i32,
     ) -> Result<DeleteAnchorResponse, GatewayError> {
-        let response =
-            delete_anchor::delete_anchor(user, data.anchor_id, self.channel.clone()).await?;
+        let response = delete_anchor::delete_anchor(user, anchor_id, self.channel.clone()).await?;
         Ok(DeleteAnchorResponse {
             success: response.success,
         })

@@ -16,17 +16,6 @@ pub struct Bookmark {
     pub document_id: i32,
 }
 
-#[derive(juniper::GraphQLInputObject, Debug, Clone)]
-// Retrieving bookmarks for a document
-pub struct DocumentBookmarks {
-    // Document to query for bookmarks
-    pub document_id: i32,
-    // Limit for the query
-    pub limit: i32,
-    // Offset for the query
-    pub offset: i32,
-}
-
 #[derive(juniper::GraphQLObject, Debug, Clone)]
 // Response to deleting a bookmark
 pub struct DeleteBookmarkResponse {

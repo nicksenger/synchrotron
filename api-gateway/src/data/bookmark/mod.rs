@@ -1,6 +1,9 @@
 use schema::shared::User;
 
-use crate::{entities::{Bookmark, DeleteBookmarkResponse, DocumentBookmarks}, errors::GatewayError};
+use crate::{
+    entities::{Bookmark, DeleteBookmarkResponse},
+    errors::GatewayError,
+};
 
 mod bookmarks_by_id;
 mod create_bookmark;
@@ -29,15 +32,12 @@ impl BookmarkData {
 
     pub async fn document_bookmarks(
         &self,
-        data: DocumentBookmarks,
+        document_id: i32,
+        limit: i32,
+        offset: i32,
     ) -> Result<Vec<Bookmark>, GatewayError> {
-        document_bookmarks::document_bookmarks(
-            self.channel.clone(),
-            data.document_id,
-            data.limit,
-            data.offset,
-        )
-        .await
+        document_bookmarks::document_bookmarks(self.channel.clone(), document_id, limit, offset)
+            .await
     }
 
     pub async fn create_bookmark(

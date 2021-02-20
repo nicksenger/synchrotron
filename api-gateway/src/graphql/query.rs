@@ -1,7 +1,7 @@
 use juniper::FieldResult;
 
 use super::schema::Context;
-use crate::entities::{AllDocuments, Document, User};
+use crate::entities::{Document, User};
 
 pub struct Query;
 
@@ -24,12 +24,12 @@ impl Query {
             .await)
     }
 
-    async fn documents(ctx: &Context, data: AllDocuments) -> FieldResult<Vec<Document>> {
+    async fn documents(ctx: &Context, limit: i32, offset: i32) -> FieldResult<Vec<Document>> {
         Ok(ctx
             .document_data
             .as_ref()
             .unwrap()
-            .all_documents(data)
+            .all_documents(limit, offset)
             .await?)
     }
 }

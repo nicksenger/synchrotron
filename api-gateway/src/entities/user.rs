@@ -32,29 +32,11 @@ pub enum UserRole {
     Administrator,
 }
 
-#[derive(juniper::GraphQLInputObject, Debug, Clone)]
-// Updating a user's role
-pub struct UpdateUserRole {
-    // ID of the user whose role should be updated
-    pub user_id: i32,
-    // New role for the user
-    pub new_role: UserRole,
-}
-
 #[derive(juniper::GraphQLObject, Debug, Clone)]
 /// Response to updating a user's role
 pub struct UpdateUserRoleResponse {
     // Success flag
     pub success: bool,
-}
-
-#[derive(juniper::GraphQLInputObject, Debug, Clone)]
-// Logging in as a user
-pub struct Login {
-    // Username for the new user
-    pub username: String,
-    // Password for the new user
-    pub password: String,
 }
 
 #[derive(Debug, Clone)]

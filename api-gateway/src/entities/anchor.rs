@@ -29,13 +29,6 @@ pub struct Anchor {
 }
 
 #[derive(juniper::GraphQLInputObject, Debug, Clone)]
-// Retrieving anchors for a page
-pub struct PageAnchors {
-    // Page to query for anchors
-    pub page_id: i32,
-}
-
-#[derive(juniper::GraphQLInputObject, Debug, Clone)]
 pub struct CreateAnchor {
     // Title for the new anchor
     pub title: String,
@@ -49,12 +42,6 @@ pub struct CreateAnchor {
     pub page_id: i32,
     // Track for the anchor
     pub track_id: i32,
-}
-
-#[derive(juniper::GraphQLInputObject, Debug, Clone)]
-pub struct DeleteAnchor {
-    // ID of the anchor to delete
-    pub anchor_id: i32,
 }
 
 #[derive(juniper::GraphQLObject, Debug, Clone)]

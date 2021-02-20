@@ -18,17 +18,6 @@ pub struct Track {
     pub document_id: i32,
 }
 
-#[derive(juniper::GraphQLInputObject, Debug, Clone)]
-// Retrieving tracks for a document
-pub struct DocumentTracks {
-    // Document to query for tracks
-    pub document_id: i32,
-    // Limit for the query
-    pub limit: i32,
-    // Offset for the query
-    pub offset: i32,
-}
-
 #[juniper::graphql_object(Context = Context)]
 impl Track {
     pub fn id(&self) -> i32 {

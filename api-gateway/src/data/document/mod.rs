@@ -1,7 +1,4 @@
-use crate::{
-    entities::{AllDocuments, Document},
-    errors::GatewayError,
-};
+use crate::{entities::Document, errors::GatewayError};
 
 mod all_documents;
 mod get_document_by_id;
@@ -26,7 +23,11 @@ impl DocumentData {
         self.documents_by_id.load(id).await
     }
 
-    pub async fn all_documents(&self, data: AllDocuments) -> Result<Vec<Document>, GatewayError> {
-        all_documents::all_documents(self.channel.clone(), data.limit, data.offset).await
+    pub async fn all_documents(
+        &self,
+        limit: i32,
+        offset: i32,
+    ) -> Result<Vec<Document>, GatewayError> {
+        all_documents::all_documents(self.channel.clone(), limit, offset).await
     }
 }

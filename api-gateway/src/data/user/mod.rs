@@ -1,5 +1,5 @@
 use crate::{
-    entities::{Login, NewUser, UpdateUserRole, User},
+    entities::{NewUser, User, UserRole},
     errors::GatewayError,
 };
 
@@ -34,8 +34,8 @@ impl UserData {
         create_user::create_user(data, self.channel.clone()).await
     }
 
-    pub async fn login(&self, data: Login) -> Result<String, GatewayError> {
-        login::login(data, self.channel.clone()).await
+    pub async fn login(&self, username: String, password: String) -> Result<String, GatewayError> {
+        login::login(username, password, self.channel.clone()).await
     }
 
     pub async fn all_users(&self) -> Result<Vec<User>, GatewayError> {
@@ -48,9 +48,10 @@ impl UserData {
 
     pub async fn update_user_role(
         &self,
-        data: UpdateUserRole,
+        user_id: i32,
+        new_role: UserRole,
         user: Option<schema::shared::User>,
     ) -> Result<UpdateUserRoleResponse, GatewayError> {
-        update_user_role::update_user_role(user, data, self.channel.clone()).await
+        update_user_role::update_user_role(user, user_id, new_role, self.channel.clone()).await
     }
 }

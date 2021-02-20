@@ -1,7 +1,7 @@
 use chrono::{DateTime, FixedOffset};
 use std::convert::From;
 
-use super::{Bookmark, DocumentBookmarks, DocumentPages, DocumentTracks, Page, Track};
+use super::{Bookmark, Page, Track};
 use crate::graphql::schema::Context;
 
 #[derive(Debug, Clone)]
@@ -15,15 +15,6 @@ pub struct Document {
     pub created_at: String,
     // Timestamp for when the document was last updated
     pub updated_at: String,
-}
-
-#[derive(juniper::GraphQLInputObject, Debug, Clone)]
-// Retrieving documents
-pub struct AllDocuments {
-    // Limit for the query
-    pub limit: i32,
-    // Offset for the query
-    pub offset: i32,
 }
 
 #[juniper::graphql_object(Context = Context)]
@@ -49,11 +40,7 @@ impl Document {
             .bookmark_data
             .as_ref()
             .unwrap()
-            .document_bookmarks(DocumentBookmarks {
-                document_id: self.id,
-                limit,
-                offset,
-            })
+            .document_bookmarks(self.id, limit, offset)
             .await
             .unwrap()
     }
@@ -63,11 +50,7 @@ impl Document {
             .page_data
             .as_ref()
             .unwrap()
-            .document_pages(DocumentPages {
-                document_id: self.id,
-                limit,
-                offset,
-            })
+            .document_pages(self.id, limit, offset)
             .await
             .unwrap()
     }
@@ -77,11 +60,7 @@ impl Document {
             .track_data
             .as_ref()
             .unwrap()
-            .document_tracks(DocumentTracks {
-                document_id: self.id,
-                limit,
-                offset,
-            })
+            .document_tracks(self.id, limit, offset)
             .await
             .unwrap()
     }

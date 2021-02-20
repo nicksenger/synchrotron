@@ -1,8 +1,8 @@
 use super::schema::Context;
 use crate::entities::{
-    Anchor, Bookmark, CreateAnchor, CreateUserAnchor, DeleteAnchor, DeleteAnchorResponse,
-    DeleteBookmarkResponse, DeleteUserAnchor, DeleteUserAnchorResponse, Login, LoginResponse,
-    NewUser, Track, UpdateUserRole, UpdateUserRoleResponse, User, UserAnchor,
+    Anchor, Bookmark, CreateAnchor, CreateUserAnchor, DeleteAnchorResponse, DeleteBookmarkResponse,
+    DeleteUserAnchorResponse, LoginResponse, NewUser, Track, UserRole,
+    UpdateUserRoleResponse, User, UserAnchor,
 };
 use juniper::FieldResult;
 
@@ -14,45 +14,52 @@ impl Mutation {
         Ok(ctx.user_data.as_ref().unwrap().create_user(data).await?)
     }
 
-    pub async fn login(ctx: &Context, data: Login) -> FieldResult<LoginResponse> {
-        let token = ctx.user_data.as_ref().unwrap().login(data).await?;
+    pub async fn login(
+        ctx: &Context,
+        username: String,
+        password: String,
+    ) -> FieldResult<LoginResponse> {
+        let token = ctx
+            .user_data
+            .as_ref()
+            .unwrap()
+            .login(username, password)
+            .await?;
         Ok(LoginResponse { token })
     }
 
     pub async fn update_user_role(
         ctx: &Context,
-        data: UpdateUserRole,
+        user_id: i32,
+        new_role: UserRole
     ) -> FieldResult<UpdateUserRoleResponse> {
         let response = ctx
             .user_data
             .as_ref()
             .unwrap()
-            .update_user_role(data, ctx.user.clone())
+            .update_user_role(user_id, new_role, ctx.user.clone())
             .await?;
         Ok(UpdateUserRoleResponse {
             success: response.success,
         })
     }
 
-    pub async fn create_anchor(ctx: &Context, data: CreateAnchor) -> FieldResult<Anchor> {
+    pub async fn create_anchor(ctx: &Context, anchor: CreateAnchor) -> FieldResult<Anchor> {
         let response = ctx
             .anchor_data
             .as_ref()
             .unwrap()
-            .create_anchor(ctx.user.clone(), data)
+            .create_anchor(ctx.user.clone(), anchor)
             .await?;
         Ok(response)
     }
 
-    pub async fn delete_anchor(
-        ctx: &Context,
-        data: DeleteAnchor,
-    ) -> FieldResult<DeleteAnchorResponse> {
+    pub async fn delete_anchor(ctx: &Context, anchor_id: i32) -> FieldResult<DeleteAnchorResponse> {
         let response = ctx
             .anchor_data
             .as_ref()
             .unwrap()
-            .delete_anchor(ctx.user.clone(), data)
+            .delete_anchor(ctx.user.clone(), anchor_id)
             .await?;
         Ok(response)
     }
@@ -72,13 +79,13 @@ impl Mutation {
 
     pub async fn delete_user_anchor(
         ctx: &Context,
-        data: DeleteUserAnchor,
+        user_anchor_id: i32,
     ) -> FieldResult<DeleteUserAnchorResponse> {
         let response = ctx
             .user_anchor_data
             .as_ref()
             .unwrap()
-            .delete_user_anchor(ctx.user.clone(), data)
+            .delete_user_anchor(ctx.user.clone(), user_anchor_id)
             .await?;
         Ok(response)
     }

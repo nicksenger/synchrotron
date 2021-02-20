@@ -1,6 +1,6 @@
 use std::convert::From;
 
-use super::{Anchor, Document, PageAnchors, PageUserAnchors, UserAnchor};
+use super::{Anchor, Document, UserAnchor};
 use crate::graphql::schema::Context;
 
 #[derive(Debug, Clone)]
@@ -18,17 +18,6 @@ pub struct Page {
     pub height: f64,
     // Document ID of the page
     pub document_id: i32,
-}
-
-#[derive(juniper::GraphQLInputObject, Debug, Clone)]
-// Retrieving pages for a document
-pub struct DocumentPages {
-    // Document to query for pages
-    pub document_id: i32,
-    // Limit for the query
-    pub limit: i32,
-    // Offset for the query
-    pub offset: i32,
 }
 
 #[juniper::graphql_object(Context = Context)]
@@ -67,7 +56,7 @@ impl Page {
             .anchor_data
             .as_ref()
             .unwrap()
-            .page_anchors(PageAnchors { page_id: self.id })
+            .page_anchors(self.id)
             .await
             .unwrap()
     }
@@ -77,7 +66,7 @@ impl Page {
             .user_anchor_data
             .as_ref()
             .unwrap()
-            .page_user_anchors(PageUserAnchors { page_id: self.id })
+            .page_user_anchors(self.id)
             .await
             .unwrap()
     }
