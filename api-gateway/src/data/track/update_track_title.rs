@@ -1,5 +1,5 @@
 use schema::{
-    courses::{courses_client::CoursesClient, UpdateTrackTitleRequest, UpdateTrackTitleResponse},
+    courses::{courses_client::CoursesClient, UpdateTrackTitleRequest},
     shared::User,
 };
 
