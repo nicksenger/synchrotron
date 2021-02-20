@@ -12,7 +12,7 @@ pub use user::{
 
 pub use document::{AllDocuments, Document};
 
-pub use bookmark::{Bookmark, DocumentBookmarks};
+pub use bookmark::{Bookmark, DocumentBookmarks, DeleteBookmarkResponse};
 
 pub use page::{DocumentPages, Page};
 

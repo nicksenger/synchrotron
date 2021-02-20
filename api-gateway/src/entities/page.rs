@@ -10,6 +10,8 @@ pub struct Page {
     pub id: i32,
     // Number of the page
     pub page_number: i32,
+    // Path to the image for the page
+    pub image_path: String,
     // Aspect ratio of the page
     pub aspect_ratio: f64,
     // Height of the page
@@ -37,6 +39,10 @@ impl Page {
 
     pub fn page_number(&self) -> i32 {
         self.page_number
+    }
+
+    pub fn image_path(&self) -> &str {
+        self.image_path.as_str()
     }
 
     pub fn aspect_ratio(&self) -> f64 {
@@ -82,6 +88,7 @@ impl From<schema::courses::Page> for Page {
         Page {
             id: x.id,
             page_number: x.page_number,
+            image_path: x.image_path,
             aspect_ratio: x.aspect_ratio as f64,
             height: x.height as f64,
             document_id: x.document_id,

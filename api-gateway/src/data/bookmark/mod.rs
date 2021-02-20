@@ -1,9 +1,10 @@
-use crate::{
-    entities::{Bookmark, DocumentBookmarks},
-    errors::GatewayError,
-};
+use schema::shared::User;
+
+use crate::{entities::{Bookmark, DeleteBookmarkResponse, DocumentBookmarks}, errors::GatewayError};
 
 mod bookmarks_by_id;
+mod create_bookmark;
+mod delete_bookmark;
 mod document_bookmarks;
 
 use bookmarks_by_id::{get_loader, BookmarkLoader};
@@ -37,5 +38,30 @@ impl BookmarkData {
             data.offset,
         )
         .await
+    }
+
+    pub async fn create_bookmark(
+        &self,
+        title: String,
+        page_id: i32,
+        document_id: i32,
+        acitve_user: Option<User>,
+    ) -> Result<Bookmark, GatewayError> {
+        create_bookmark::create_bookmark(
+            self.channel.clone(),
+            title,
+            page_id,
+            document_id,
+            acitve_user,
+        )
+        .await
+    }
+
+    pub async fn delete_bookmark(
+        &self,
+        bookmark_id: i32,
+        acitve_user: Option<User>,
+    ) -> Result<DeleteBookmarkResponse, GatewayError> {
+        delete_bookmark::delete_bookmark(self.channel.clone(), bookmark_id, acitve_user).await
     }
 }

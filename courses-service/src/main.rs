@@ -6,8 +6,9 @@ use tonic::{transport::Server, Request, Response, Status};
 use schema::{
     courses::{
         courses_server::{Courses, CoursesServer},
-        Anchor, Bookmark, CreateAnchorRequest, CreateAnchorResponse, CreateUserAnchorRequest,
-        CreateUserAnchorResponse, DeleteAnchorRequest, DeleteAnchorResponse,
+        Anchor, Bookmark, CreateAnchorRequest, CreateAnchorResponse, CreateBookmarkRequest,
+        CreateBookmarkResponse, CreateUserAnchorRequest, CreateUserAnchorResponse,
+        DeleteAnchorRequest, DeleteAnchorResponse, DeleteBookmarkRequest, DeleteBookmarkResponse,
         DeleteUserAnchorRequest, DeleteUserAnchorResponse, Document, GetAnchorsByIDsRequest,
         GetAnchorsByIDsResponse, GetBookmarksByIDsRequest, GetBookmarksByIDsResponse,
         GetDocumentBookmarksRequest, GetDocumentBookmarksResponse, GetDocumentPagesRequest,
@@ -16,7 +17,8 @@ use schema::{
         GetDocumentsResponse, GetPageAnchorsRequest, GetPageAnchorsResponse,
         GetPageUserAnchorsRequest, GetPageUserAnchorsResponse, GetPagesByIDsRequest,
         GetPagesByIDsResponse, GetTracksByIDsRequest, GetTracksByIDsResponse,
-        GetUserAnchorsByIDsRequest, GetUserAnchorsByIDsResponse, Page, Track, UserAnchor,
+        GetUserAnchorsByIDsRequest, GetUserAnchorsByIDsResponse, Page, Track,
+        UpdateTrackTitleRequest, UpdateTrackTitleResponse, UserAnchor,
     },
     shared::UserRole,
 };
@@ -217,6 +219,46 @@ where
         }))
     }
 
+    async fn update_track_title(
+        &self,
+        request: tonic::Request<UpdateTrackTitleRequest>,
+    ) -> Result<tonic::Response<UpdateTrackTitleResponse>, tonic::Status> {
+        let req = request.into_inner();
+
+        if let Some(user) = req.active_user {
+            if user.role == (UserRole::Moderator as i32)
+                || user.role == (UserRole::Administrator as i32)
+            {
+                let result = sqlx::query!(
+                    "UPDATE tracks SET title=$1 WHERE id=$2 RETURNING *",
+                    req.title,
+                    req.track_id
+                )
+                .fetch_one(&self.executor)
+                .await
+                .map_err(CoursesServiceError::from)?;
+
+                Ok(Response::new(UpdateTrackTitleResponse {
+                    track: Some(Track {
+                        id: result.id,
+                        track_number: result.track_number,
+                        title: result.title,
+                        audio_path: result.audio_path,
+                        document_id: result.document,
+                    }),
+                }))
+            } else {
+                Err(tonic::Status::permission_denied(
+                    "Only moderators may update tracks.",
+                ))
+            }
+        } else {
+            Err(tonic::Status::permission_denied(
+                "You must be logged in to update a track.",
+            ))
+        }
+    }
+
     async fn get_document_bookmarks(
         &self,
         request: tonic::Request<GetDocumentBookmarksRequest>,
@@ -270,6 +312,76 @@ where
                 })
                 .collect(),
         }))
+    }
+
+    async fn create_bookmark(
+        &self,
+        request: tonic::Request<CreateBookmarkRequest>,
+    ) -> Result<tonic::Response<CreateBookmarkResponse>, tonic::Status> {
+        let req = request.into_inner();
+        if let Some(user) = req.active_user {
+            if user.role == (UserRole::Moderator as i32)
+                || user.role == (UserRole::Administrator as i32)
+            {
+                let b = (sqlx::query!(
+                    "INSERT INTO bookmarks (
+                        title,
+                        document_page,
+                        document
+                    ) VALUES ($1, $2, $3) RETURNING *;",
+                    req.title,
+                    req.page_id,
+                    req.document_id
+                )
+                .fetch_one(&self.executor)
+                .await)
+                    .map_err(CoursesServiceError::from)?;
+
+                Ok(Response::new(CreateBookmarkResponse {
+                    bookmark: Some(Bookmark {
+                        id: b.id,
+                        title: b.title,
+                        page_id: b.document_page,
+                        document_id: b.document,
+                    }),
+                }))
+            } else {
+                Err(tonic::Status::permission_denied(
+                    "Only moderators can create bookmarks.",
+                ))
+            }
+        } else {
+            Err(tonic::Status::permission_denied(
+                "You must be logged in to create a bookmark.",
+            ))
+        }
+    }
+
+    async fn delete_bookmark(
+        &self,
+        request: tonic::Request<DeleteBookmarkRequest>,
+    ) -> Result<tonic::Response<DeleteBookmarkResponse>, tonic::Status> {
+        let req = request.into_inner();
+        if let Some(user) = req.active_user {
+            if user.role == (UserRole::Moderator as i32)
+                || user.role == (UserRole::Administrator as i32)
+            {
+                (sqlx::query!("DELETE FROM bookmarks WHERE id=$1;", req.bookmark_id)
+                    .execute(&self.executor)
+                    .await)
+                    .map_err(CoursesServiceError::from)?;
+
+                Ok(Response::new(DeleteBookmarkResponse { success: true }))
+            } else {
+                Err(tonic::Status::permission_denied(
+                    "Only moderators can create bookmarks.",
+                ))
+            }
+        } else {
+            Err(tonic::Status::permission_denied(
+                "You must be logged in to create a bookmark.",
+            ))
+        }
     }
 
     async fn get_page_anchors(

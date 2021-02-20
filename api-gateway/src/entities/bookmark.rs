@@ -27,6 +27,13 @@ pub struct DocumentBookmarks {
     pub offset: i32,
 }
 
+#[derive(juniper::GraphQLObject, Debug, Clone)]
+// Response to deleting a bookmark
+pub struct DeleteBookmarkResponse {
+    // Success flag
+    pub success: bool,
+}
+
 #[juniper::graphql_object(Context = Context)]
 impl Bookmark {
     pub fn id(&self) -> i32 {

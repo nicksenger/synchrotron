@@ -16,10 +16,16 @@ service Courses {
   rpc GetDocumentTracks(GetDocumentTracksRequest) returns (GetDocumentTracksResponse);
   // Gets tracks corresponding to the provided set of IDs
   rpc GetTracksByIds(GetTracksByIDsRequest) returns (GetTracksByIDsResponse);
+  // Updates the title of a track
+  rpc UpdateTrackTitle(UpdateTrackTitleRequest) returns (UpdateTrackTitleResponse);
   // Gets a list of bookmarks for a specified document
   rpc GetDocumentBookmarks(GetDocumentBookmarksRequest) returns (GetDocumentBookmarksResponse);
   // Gets bookmarks corresponding to the provided set of IDs
   rpc GetBookmarksByIds(GetBookmarksByIDsRequest) returns (GetBookmarksByIDsResponse);
+  // Create a bookmark
+  rpc CreateBookmark(CreateBookmarkRequest) returns (CreateBookmarkResponse);
+  // Delete a bookmark
+  rpc DeleteBookmark(DeleteBookmarkRequest) returns (DeleteBookmarkResponse);
   // Get a list of anchors for the specified page
   rpc GetPageAnchors(GetPageAnchorsRequest) returns (GetPageAnchorsResponse);
   // Gets anchors corresponding to a provided set of IDs
@@ -118,11 +124,41 @@ message GetTracksByIDsResponse {
   repeated Track tracks = 1;
 }
 
+message UpdateTrackTitleRequest {
+  shared.User active_user = 1;
+  int32 track_id = 2;
+  string title = 3;
+}
+
+message UpdateTrackTitleResponse {
+  Track track = 1;
+}
+
 message Bookmark {
   int32 id = 1;
   string title = 2;
   int32 page_id = 3;
   int32 document_id = 4;
+}
+
+message CreateBookmarkRequest {
+  shared.User active_user = 1;
+  string title = 2;
+  int32 page_id = 3;
+  int32 document_id = 4;
+}
+
+message CreateBookmarkResponse {
+  Bookmark bookmark = 1;
+}
+
+message DeleteBookmarkRequest {
+  shared.User active_user = 1;
+  int32 bookmark_id = 2;
+}
+
+message DeleteBookmarkResponse {
+  bool success = 1;
 }
 
 message GetDocumentBookmarksRequest {
