@@ -48,6 +48,9 @@ impl BatchFn<i32, Vec<UserAnchor>> for PageUserAnchorBatcher {
         let client = CoursesClient::new(self.channel.clone());
 
         let mut page_anchor_map = HashMap::new();
+        keys.iter().for_each(|&k| {
+            page_anchor_map.insert(k, vec![]);
+        });
         let _ = get_user_anchors_by_page_id(&mut page_anchor_map, keys.to_vec(), client).await;
         page_anchor_map
     }
