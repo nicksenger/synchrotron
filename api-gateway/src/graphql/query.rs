@@ -1,7 +1,7 @@
 use juniper::FieldResult;
 
 use super::schema::Context;
-use crate::entities::{Document, User};
+use crate::entities::{Document, User, Page};
 
 pub struct Query;
 
@@ -31,5 +31,14 @@ impl Query {
             .unwrap()
             .all_documents(limit, offset)
             .await?)
+    }
+
+    async fn page_by_id(ctx: &Context, id: i32) -> FieldResult<Page> {
+        Ok(ctx
+            .page_data
+            .as_ref()
+            .unwrap()
+            .pages_by_id(id)
+            .await)
     }
 }
