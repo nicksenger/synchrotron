@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::env;
 
 use sqlx::postgres::{PgPoolOptions, Postgres};
@@ -10,14 +11,14 @@ use schema::{
         CreateBookmarkResponse, CreateUserAnchorRequest, CreateUserAnchorResponse,
         DeleteAnchorRequest, DeleteAnchorResponse, DeleteBookmarkRequest, DeleteBookmarkResponse,
         DeleteUserAnchorRequest, DeleteUserAnchorResponse, Document, GetAnchorsByIDsRequest,
-        GetAnchorsByIDsResponse, GetBookmarksByIDsRequest, GetBookmarksByIDsResponse,
-        GetDocumentBookmarksRequest, GetDocumentBookmarksResponse, GetDocumentPagesRequest,
-        GetDocumentPagesResponse, GetDocumentTracksRequest, GetDocumentTracksResponse,
-        GetDocumentsByIDsRequest, GetDocumentsByIDsResponse, GetDocumentsRequest,
-        GetDocumentsResponse, GetPageAnchorsRequest, GetPageAnchorsResponse,
-        GetPageUserAnchorsRequest, GetPageUserAnchorsResponse, GetPagesByIDsRequest,
+        GetAnchorsByIDsResponse, GetAnchorsByPageIDsRequest, GetAnchorsByPageIDsResponse,
+        GetBookmarksByIDsRequest, GetBookmarksByIDsResponse, GetDocumentBookmarksRequest,
+        GetDocumentBookmarksResponse, GetDocumentPagesRequest, GetDocumentPagesResponse,
+        GetDocumentTracksRequest, GetDocumentTracksResponse, GetDocumentsByIDsRequest,
+        GetDocumentsByIDsResponse, GetDocumentsRequest, GetDocumentsResponse, GetPagesByIDsRequest,
         GetPagesByIDsResponse, GetTracksByIDsRequest, GetTracksByIDsResponse,
-        GetUserAnchorsByIDsRequest, GetUserAnchorsByIDsResponse, Page, Track,
+        GetUserAnchorsByIDsRequest, GetUserAnchorsByIDsResponse, GetUserAnchorsByPageIDsRequest,
+        GetUserAnchorsByPageIDsResponse, Page, PageAnchors, PageUserAnchors, Track,
         UpdateTrackTitleRequest, UpdateTrackTitleResponse, UserAnchor,
     },
     shared::UserRole,
@@ -384,31 +385,37 @@ where
         }
     }
 
-    async fn get_page_anchors(
+    async fn get_anchors_by_page_ids(
         &self,
-        request: tonic::Request<GetPageAnchorsRequest>,
-    ) -> Result<tonic::Response<GetPageAnchorsResponse>, tonic::Status> {
+        request: tonic::Request<GetAnchorsByPageIDsRequest>,
+    ) -> Result<tonic::Response<GetAnchorsByPageIDsResponse>, tonic::Status> {
         let req = request.into_inner();
-        let anchors = sqlx::query!("SELECT * FROM anchors WHERE document_page=$1;", req.page_id)
-            .fetch_all(&self.executor)
-            .await
-            .map_err(CoursesServiceError::from)?;
+        let anchors = sqlx::query!(
+            "SELECT * FROM anchors WHERE document_page IN (SELECT * FROM UNNEST($1::int[]));",
+            &req.ids
+        )
+        .fetch_all(&self.executor)
+        .await
+        .map_err(CoursesServiceError::from)?;
 
-        Ok(Response::new(GetPageAnchorsResponse {
-            anchors: anchors
-                .into_iter()
-                .map(|a| Anchor {
-                    id: a.id,
-                    title: a.title.unwrap_or("".to_owned()),
-                    track_time: a.track_time,
-                    position_top: a.position_top,
-                    position_left: a.position_left,
-                    page_id: a.document_page,
-                    track_id: a.track,
-                    created_at: a.created_at.to_rfc3339(),
-                    updated_at: a.updated_at.to_rfc3339(),
-                })
-                .collect(),
+        Ok(Response::new(GetAnchorsByPageIDsResponse {
+            anchors: anchors.into_iter().fold(HashMap::new(), |mut acc, cur| {
+                acc.entry(cur.document_page)
+                    .or_insert(PageAnchors { anchors: vec![] })
+                    .anchors
+                    .push(Anchor {
+                        id: cur.id,
+                        title: cur.title.unwrap_or("".to_owned()),
+                        track_time: cur.track_time,
+                        position_top: cur.position_top,
+                        position_left: cur.position_left,
+                        page_id: cur.document_page,
+                        track_id: cur.track,
+                        created_at: cur.created_at.to_rfc3339(),
+                        updated_at: cur.updated_at.to_rfc3339(),
+                    });
+                acc
+            }),
         }))
     }
 
@@ -443,35 +450,38 @@ where
         }))
     }
 
-    async fn get_page_user_anchors(
+    async fn get_user_anchors_by_page_ids(
         &self,
-        request: tonic::Request<GetPageUserAnchorsRequest>,
-    ) -> Result<tonic::Response<GetPageUserAnchorsResponse>, tonic::Status> {
+        request: tonic::Request<GetUserAnchorsByPageIDsRequest>,
+    ) -> Result<tonic::Response<GetUserAnchorsByPageIDsResponse>, tonic::Status> {
         let req = request.into_inner();
         let anchors = sqlx::query!(
-            "SELECT * FROM user_anchors WHERE document_page=$1;",
-            req.page_id
+            "SELECT * FROM user_anchors WHERE document_page IN (SELECT * FROM UNNEST($1::int[]));",
+            &req.ids
         )
         .fetch_all(&self.executor)
         .await
         .map_err(CoursesServiceError::from)?;
 
-        Ok(Response::new(GetPageUserAnchorsResponse {
-            user_anchors: anchors
-                .into_iter()
-                .map(|a| UserAnchor {
-                    id: a.id,
-                    title: a.title.unwrap_or("".to_owned()),
-                    track_time: a.track_time,
-                    position_top: a.position_top,
-                    position_left: a.position_left,
-                    page_id: a.document_page,
-                    track_id: a.track,
-                    created_at: a.created_at.to_rfc3339(),
-                    updated_at: a.updated_at.to_rfc3339(),
-                    owner: a.owning_user,
-                })
-                .collect(),
+        Ok(Response::new(GetUserAnchorsByPageIDsResponse {
+            user_anchors: anchors.into_iter().fold(HashMap::new(), |mut acc, cur| {
+                acc.entry(cur.document_page)
+                    .or_insert(PageUserAnchors { user_anchors: vec![] })
+                    .user_anchors
+                    .push(UserAnchor {
+                        id: cur.id,
+                        title: cur.title.unwrap_or("".to_owned()),
+                        track_time: cur.track_time,
+                        position_top: cur.position_top,
+                        position_left: cur.position_left,
+                        page_id: cur.document_page,
+                        track_id: cur.track,
+                        created_at: cur.created_at.to_rfc3339(),
+                        updated_at: cur.updated_at.to_rfc3339(),
+                        owner: cur.owning_user
+                    });
+                acc
+            }),
         }))
     }
 

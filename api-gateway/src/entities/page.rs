@@ -58,7 +58,6 @@ impl Page {
             .unwrap()
             .page_anchors(self.id)
             .await
-            .unwrap()
     }
 
     pub async fn user_anchors(&self, context: &Context) -> Vec<UserAnchor> {
@@ -68,7 +67,6 @@ impl Page {
             .unwrap()
             .page_user_anchors(self.id)
             .await
-            .unwrap()
     }
 }
 

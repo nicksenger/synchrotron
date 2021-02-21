@@ -6,21 +6,24 @@ use schema::shared::User;
 
 mod create_user_anchor;
 mod delete_user_anchor;
-mod page_user_anchors;
 mod user_anchors_by_id;
+mod user_anchors_by_page_id;
 
 use user_anchors_by_id::{get_loader, UserAnchorLoader};
+use user_anchors_by_page_id::{get_page_loader, PageUserAnchorLoader};
 
 #[derive(Clone)]
 pub struct UserAnchorData {
     channel: tonic::transport::Channel,
     user_anchors_by_id: UserAnchorLoader,
+    user_anchors_by_page_id: PageUserAnchorLoader,
 }
 
 impl UserAnchorData {
     pub fn new(channel: tonic::transport::Channel) -> Self {
         Self {
             user_anchors_by_id: get_loader(channel.clone()),
+            user_anchors_by_page_id: get_page_loader(channel.clone()),
             channel,
         }
     }
@@ -29,8 +32,8 @@ impl UserAnchorData {
         self.user_anchors_by_id.load(id).await
     }
 
-    pub async fn page_user_anchors(&self, page_id: i32) -> Result<Vec<UserAnchor>, GatewayError> {
-        page_user_anchors::page_user_anchors(self.channel.clone(), page_id).await
+    pub async fn page_user_anchors(&self, page_id: i32) -> Vec<UserAnchor> {
+        self.user_anchors_by_page_id.load(page_id).await
     }
 
     pub async fn create_user_anchor(

@@ -27,11 +27,11 @@ service Courses {
   // Delete a bookmark
   rpc DeleteBookmark(DeleteBookmarkRequest) returns (DeleteBookmarkResponse);
   // Get a list of anchors for the specified page
-  rpc GetPageAnchors(GetPageAnchorsRequest) returns (GetPageAnchorsResponse);
+  rpc GetAnchorsByPageIds(GetAnchorsByPageIDsRequest) returns (GetAnchorsByPageIDsResponse);
   // Gets anchors corresponding to a provided set of IDs
   rpc GetAnchorsByIds(GetAnchorsByIDsRequest) returns (GetAnchorsByIDsResponse);
   // Gets a list of user anchors for the specified page
-  rpc GetPageUserAnchors(GetPageUserAnchorsRequest) returns (GetPageUserAnchorsResponse);
+  rpc GetUserAnchorsByPageIds(GetUserAnchorsByPageIDsRequest) returns (GetUserAnchorsByPageIDsResponse);
   // Gets user anchors corresponding to a provided set of IDs
   rpc GetUserAnchorsByIds(GetUserAnchorsByIDsRequest) returns (GetUserAnchorsByIDsResponse);
   // Creates an anchor mapping a specified position on a page to a track time
@@ -192,12 +192,16 @@ message Anchor {
   string updated_at = 9;
 }
 
-message GetPageAnchorsRequest {
-  int32 page_id = 1;
+message PageAnchors {
+  repeated Anchor anchors = 1;
 }
 
-message GetPageAnchorsResponse {
-  repeated Anchor anchors = 1;
+message GetAnchorsByPageIDsRequest {
+  repeated int32 ids = 1;
+}
+
+message GetAnchorsByPageIDsResponse {
+  map<int32, PageAnchors> anchors = 1;
 }
 
 message GetAnchorsByIDsRequest {
@@ -221,12 +225,16 @@ message UserAnchor {
   int32 owner = 10;
 }
 
-message GetPageUserAnchorsRequest {
-  int32 page_id = 1;
+message PageUserAnchors {
+  repeated UserAnchor user_anchors = 1;
 }
 
-message GetPageUserAnchorsResponse {
-  repeated UserAnchor user_anchors = 1;
+message GetUserAnchorsByPageIDsRequest {
+  repeated int32 ids = 1;
+}
+
+message GetUserAnchorsByPageIDsResponse {
+  map<int32, PageUserAnchors> user_anchors = 1;
 }
 
 message GetUserAnchorsByIDsRequest {

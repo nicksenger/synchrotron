@@ -5,22 +5,25 @@ use crate::{
 use schema::shared::User;
 
 mod anchors_by_id;
+mod anchors_by_page_id;
 mod create_anchor;
 mod delete_anchor;
-mod page_anchors;
 
 use anchors_by_id::{get_loader, AnchorLoader};
+use anchors_by_page_id::{get_page_loader, PageAnchorLoader};
 
 #[derive(Clone)]
 pub struct AnchorData {
     channel: tonic::transport::Channel,
     anchors_by_id: AnchorLoader,
+    anchors_by_page_id: PageAnchorLoader,
 }
 
 impl AnchorData {
     pub fn new(channel: tonic::transport::Channel) -> Self {
         Self {
             anchors_by_id: get_loader(channel.clone()),
+            anchors_by_page_id: get_page_loader(channel.clone()),
             channel,
         }
     }
@@ -29,8 +32,8 @@ impl AnchorData {
         self.anchors_by_id.load(id).await
     }
 
-    pub async fn page_anchors(&self, page_id: i32) -> Result<Vec<Anchor>, GatewayError> {
-        page_anchors::page_anchors(self.channel.clone(), page_id).await
+    pub async fn page_anchors(&self, page_id: i32) -> Vec<Anchor> {
+        self.anchors_by_page_id.load(page_id).await
     }
 
     pub async fn create_anchor(
