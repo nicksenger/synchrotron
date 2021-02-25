@@ -34,7 +34,7 @@ impl BookmarkBatcher {
 
 #[async_trait]
 impl BatchFn<i32, Bookmark> for BookmarkBatcher {
-    async fn load(&self, keys: &[i32]) -> HashMap<i32, Bookmark> {
+    async fn load(&mut self, keys: &[i32]) -> HashMap<i32, Bookmark> {
         let client = CoursesClient::new(self.channel.clone());
 
         let mut anchor_map = HashMap::new();

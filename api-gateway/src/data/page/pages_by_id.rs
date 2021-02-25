@@ -34,7 +34,7 @@ impl PageBatcher {
 
 #[async_trait]
 impl BatchFn<i32, Page> for PageBatcher {
-    async fn load(&self, keys: &[i32]) -> HashMap<i32, Page> {
+    async fn load(&mut self, keys: &[i32]) -> HashMap<i32, Page> {
         let client = CoursesClient::new(self.channel.clone());
 
         let mut anchor_map = HashMap::new();

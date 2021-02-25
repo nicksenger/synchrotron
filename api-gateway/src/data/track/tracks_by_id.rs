@@ -34,7 +34,7 @@ impl TrackBatcher {
 
 #[async_trait]
 impl BatchFn<i32, Track> for TrackBatcher {
-    async fn load(&self, keys: &[i32]) -> HashMap<i32, Track> {
+    async fn load(&mut self, keys: &[i32]) -> HashMap<i32, Track> {
         let client = CoursesClient::new(self.channel.clone());
 
         let mut anchor_map = HashMap::new();

@@ -34,7 +34,7 @@ impl DocumentBatcher {
 
 #[async_trait]
 impl BatchFn<i32, Document> for DocumentBatcher {
-    async fn load(&self, keys: &[i32]) -> HashMap<i32, Document> {
+    async fn load(&mut self, keys: &[i32]) -> HashMap<i32, Document> {
         let client = CoursesClient::new(self.channel.clone());
 
         let mut anchor_map = HashMap::new();

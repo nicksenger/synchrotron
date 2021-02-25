@@ -34,7 +34,7 @@ impl UserAnchorBatcher {
 
 #[async_trait]
 impl BatchFn<i32, UserAnchor> for UserAnchorBatcher {
-    async fn load(&self, keys: &[i32]) -> HashMap<i32, UserAnchor> {
+    async fn load(&mut self, keys: &[i32]) -> HashMap<i32, UserAnchor> {
         let client = CoursesClient::new(self.channel.clone());
 
         let mut anchor_map = HashMap::new();
