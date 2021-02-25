@@ -8,9 +8,25 @@ edition = "2018"
 
 [dependencies]
 env_logger = "0.8"
+futures = "^0.3.6"
 graphql_client = "^0.9"
 iced = { git = "https://github.com/hecrj/iced", features = ["image", "debug"] }
-wasm-bindgen = "0.2.69"
+iced_futures = { git = "https://github.com/hecrj/iced" }
+serde = { version = "^1", features = ["derive"] }
+wasm-bindgen = { version = "0.2.69", features = ["serde-serialize"]  }
+wasm-bindgen-futures = "0.4"
+
+
+[dependencies.web-sys]
+version = "0.3.4"
+features = [
+  'Headers',
+  'Request',
+  'RequestInit',
+  'RequestMode',
+  'Response',
+  'Window',
+]
 
 [build-dependencies]
 api-gateway = { path = "../api-gateway" }
