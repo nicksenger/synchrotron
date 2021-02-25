@@ -1,0 +1,112 @@
+mutation Register($username: String!, $password: String!) {
+  createUser(data: {username: $username, password: $password}) {
+    id
+  }
+}
+
+mutation Login($username: String!, $password: String!) {
+  login(username: $username, password: $password) {
+    token
+    user {
+      id
+      username
+    }
+  }
+}
+
+query AllDocuments($documentLimit: Int!, $documentOffset: Int!) {
+  documents(limit: $documentLimit, offset: $documentOffset) {
+    id
+    title
+  }
+}
+
+query Document($documentId: Int!, $trackLimit: Int!, $trackOffset: Int!, $bookmarkLimit: Int!, $bookmarkOffset: Int!, $pageLimit: Int!, $pageOffset: Int!) {
+  documentById(id: $documentId) {
+    tracks(limit: $trackLimit, offset: $trackOffset) {
+      id
+      title
+      audioPath
+      trackNumber
+    }
+    bookmarks(limit: $bookmarkLimit, offset: $bookmarkOffset) {
+      title
+      page {
+        pageNumber
+      }
+    }
+    pages(limit: $pageLimit, offset: $pageOffset) {
+      id
+      pageNumber
+      height
+      aspectRatio
+      imagePath
+    }
+  }
+}
+
+query Page($pageId: Int!) {
+  pageById(id: $pageId) {
+    anchors {
+      positionTop
+      positionLeft
+      trackTime
+      track {
+        audioPath
+      }
+    }
+    userAnchors {
+      positionTop
+      positionLeft
+      trackTime
+      track {
+        audioPath
+      }
+      owner {
+        id
+      }
+    }
+  }
+}
+
+mutation CreateAnchor($title: String!, $trackTime: Float!, $positionTop: Float!, $positionLeft: Float!, $pageId: Int!, $trackId: Int!) {
+  createAnchor(
+    anchor: {
+      title: $title,
+      trackTime: $trackTime,
+      positionTop: $positionTop,
+      positionLeft: $positionLeft,
+      pageId: $pageId,
+      trackId: $trackId,
+    }
+  ) {
+    id
+  }
+}
+
+mutation DeleteAnchor($anchorId: Int!) {
+  deleteAnchor(anchorId: $anchorId) {
+    success
+  }
+}
+
+mutation CreateUserAnchor($title: String!, $trackTime: Float!, $positionTop: Float!, $positionLeft: Float!, $pageId: Int!, $trackId: Int!) {
+  createUserAnchor(
+  	data: {
+      title: $title,
+      trackTime: $trackTime,
+      positionTop: $positionTop,
+      positionLeft: $positionLeft,
+      pageId: $pageId,
+      trackId: $trackId,
+    }
+  ) {
+    id
+  }
+}
+
+mutation DeleteUserAnchor($userAnchorId: Int!) {
+  deleteUserAnchor(userAnchorId: $userAnchorId) {
+    success
+  }
+}
