@@ -1,5 +1,5 @@
 mod authentication;
-mod entities;
+pub mod entities;
 mod routing;
 mod ui;
 
@@ -16,8 +16,8 @@ pub struct Model {
 impl Model {
     pub fn new(url: String) -> Self {
         Self {
-            authentication: authentication::Model::new(),
-            entities: entities::Model::new(),
+            authentication: authentication::Model::default(),
+            entities: entities::Model::default(),
             ui: ui::Model::new(),
             routing: routing::Model::new(url),
         }

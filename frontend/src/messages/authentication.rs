@@ -1,27 +1,34 @@
 use super::ErrorPayload;
+use crate::state::entities::User;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct LoginRequestPayload {
     pub username: String,
     pub password: String,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct LoginSuccessPayload {
     pub token: String,
-    pub user_id: i32,
+    pub user: User,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct RegisterRequestPayload {
     pub username: String,
     pub password: String,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
+pub struct RegisterSuccessPayload {
+    pub user: User,
+}
+
+#[derive(Clone, Debug)]
 pub enum Msg {
     LoginRequest(LoginRequestPayload),
     LoginResponse(Result<LoginSuccessPayload, ErrorPayload>),
     RegisterRequest(RegisterRequestPayload),
-    RegisterResponse(Result<(), ErrorPayload>),
+    RegisterResponse(Result<RegisterSuccessPayload, ErrorPayload>),
+    Logout,
 }

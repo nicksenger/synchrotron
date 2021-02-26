@@ -1,4 +1,4 @@
-use crate::messages::Msg;
+use crate::messages::{routing, Msg};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Route {
@@ -16,9 +16,14 @@ pub struct Model {
 impl Model {
     pub fn new(url: String) -> Self {
         Self {
-            route: Route::NotFound,
+            route: Route::Login,
         }
     }
 
-    pub fn update(&mut self, message: &Msg) {}
+    pub fn update(&mut self, message: &Msg) {
+        match message {
+            Msg::Routing(routing::Msg::Navigate(r)) => self.route = r.clone(),
+            _ => {}
+        }
+    }
 }

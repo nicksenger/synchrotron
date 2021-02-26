@@ -1,6 +1,8 @@
 mutation Register($username: String!, $password: String!) {
   createUser(data: {username: $username, password: $password}) {
     id
+    username
+    role
   }
 }
 
@@ -10,6 +12,7 @@ mutation Login($username: String!, $password: String!) {
     user {
       id
       username
+      role
     }
   }
 }
@@ -17,12 +20,18 @@ mutation Login($username: String!, $password: String!) {
 query AllDocuments($documentLimit: Int!, $documentOffset: Int!) {
   documents(limit: $documentLimit, offset: $documentOffset) {
     id
+    createdAt
+    updatedAt
     title
   }
 }
 
 query Document($documentId: Int!, $trackLimit: Int!, $trackOffset: Int!, $bookmarkLimit: Int!, $bookmarkOffset: Int!, $pageLimit: Int!, $pageOffset: Int!) {
   documentById(id: $documentId) {
+    id
+    createdAt
+    updatedAt
+    title
     tracks(limit: $trackLimit, offset: $trackOffset) {
       id
       title
@@ -30,9 +39,10 @@ query Document($documentId: Int!, $trackLimit: Int!, $trackOffset: Int!, $bookma
       trackNumber
     }
     bookmarks(limit: $bookmarkLimit, offset: $bookmarkOffset) {
+      id
       title
       page {
-        pageNumber
+        id
       }
     }
     pages(limit: $pageLimit, offset: $pageOffset) {
@@ -47,23 +57,41 @@ query Document($documentId: Int!, $trackLimit: Int!, $trackOffset: Int!, $bookma
 
 query Page($pageId: Int!) {
   pageById(id: $pageId) {
+    id
+    pageNumber
+    imagePath
+    aspectRatio
+    height
+    document {
+      id
+    }
     anchors {
+      id
+      title
       positionTop
       positionLeft
       trackTime
       track {
-        audioPath
+        id
       }
+      createdAt
+      updatedAt
     }
     userAnchors {
+      id
+      title
       positionTop
       positionLeft
       trackTime
       track {
-        audioPath
+        id
       }
+      createdAt
+      updatedAt
       owner {
         id
+        username
+        role
       }
     }
   }
@@ -81,6 +109,18 @@ mutation CreateAnchor($title: String!, $trackTime: Float!, $positionTop: Float!,
     }
   ) {
     id
+    title
+    trackTime
+    positionTop
+    positionLeft
+    page {
+      id
+    }
+    track {
+      id
+    }
+    createdAt
+    updatedAt
   }
 }
 
@@ -102,6 +142,21 @@ mutation CreateUserAnchor($title: String!, $trackTime: Float!, $positionTop: Flo
     }
   ) {
     id
+    title
+    trackTime
+    positionTop
+    positionLeft
+    page {
+      id
+    }
+    track {
+      id
+    }
+    owner {
+      id
+    }
+    createdAt
+    updatedAt
   }
 }
 

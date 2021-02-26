@@ -1,14 +1,17 @@
-use iced::{Application, Command, Settings, Element, Text};
+use iced::{Application, Command, Element, Settings, Text};
+use wasm_bindgen::prelude::*;
 
 mod commands;
 mod messages;
 mod state;
+mod view;
 
-pub fn main() -> iced::Result {
-    Synchrotron::run(Settings::default())
+#[wasm_bindgen]
+pub fn main() {
+    Synchrotron::run(Settings::default());
 }
 
-struct Synchrotron {
+pub struct Synchrotron {
     state: state::Model,
 }
 
@@ -27,6 +30,18 @@ impl Application for Synchrotron {
 
     fn title(&self) -> String {
         match &self.state.routing.route {
+            state::Route::Login => "Synchrotron - Login".to_owned(),
+            state::Route::Register => "Synchrotron - Register".to_owned(),
+            state::Route::Courses => "Synchrotron - Courses".to_owned(),
+            state::Route::Course(id, _) => format!(
+                "Synchrotron - {}",
+                self.state
+                    .entities
+                    .documents_by_id
+                    .get(id)
+                    .map(|c| c.title.clone())
+                    .unwrap_or("Unknown Course".to_owned())
+            ),
             _ => "Synchrotron - Not Found".to_owned(),
         }
     }
@@ -41,6 +56,6 @@ impl Application for Synchrotron {
     }
 
     fn view(&mut self) -> Element<Self::Message> {
-        Text::new("test").into()
+        view::view(&mut self.state)
     }
 }

@@ -1,6 +1,6 @@
 use crate::state::Route;
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Msg {
     Navigate(Route),
     Push(Route),

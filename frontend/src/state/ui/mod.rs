@@ -6,10 +6,10 @@ mod login_screen;
 mod register_screen;
 
 pub struct Model {
-    course_screen: course_screen::Model,
-    courses_screen: courses_screen::Model,
-    login_screen: login_screen::Model,
-    register_screen: register_screen::Model,
+    pub course_screen: course_screen::Model,
+    pub courses_screen: courses_screen::Model,
+    pub login_screen: login_screen::Model,
+    pub register_screen: register_screen::Model,
 }
 
 impl Model {
@@ -17,7 +17,7 @@ impl Model {
         Self {
             course_screen: course_screen::Model::new(),
             courses_screen: courses_screen::Model::new(),
-            login_screen: login_screen::Model::new(),
+            login_screen: login_screen::Model::default(),
             register_screen: register_screen::Model::new(),
         }
     }
