@@ -1718,6 +1718,7 @@ dependencies = [
  "graphql_client",
  "iced",
  "iced_futures",
+ "iced_web",
  "juniper",
  "serde",
  "serde_json",

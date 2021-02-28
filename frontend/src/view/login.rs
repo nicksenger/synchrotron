@@ -2,11 +2,15 @@ use authentication::LoginRequestPayload;
 use iced::{Button, Column, Element, Row, Text, TextInput};
 
 use crate::{
-    messages::{authentication, ui, Msg},
-    state::Model,
+    messages::{authentication, routing, ui, Msg},
+    state::{Model, Route},
 };
 
 pub fn view(state: &mut Model) -> Element<Msg> {
+    if state.ui.login_screen.loading {
+        return Text::new("loading...").into();
+    }
+
     let username_input = TextInput::new(
         &mut state.ui.login_screen.username_input_state,
         "",
@@ -22,7 +26,7 @@ pub fn view(state: &mut Model) -> Element<Msg> {
     )
     .password();
 
-    let button = Button::new(
+    let login_button = Button::new(
         &mut state.ui.login_screen.submit_button_state,
         Text::new("Go"),
     )
@@ -33,10 +37,21 @@ pub fn view(state: &mut Model) -> Element<Msg> {
         },
     )));
 
+    let register_button = Button::new(
+        &mut state.ui.login_screen.register_button_state,
+        Text::new("Register"),
+    )
+    .on_press(Msg::Routing(routing::Msg::Navigate(Route::Register)));
+
     Column::new()
         .push(Row::new().push(Text::new("Login")))
         .push(Row::new().push(username_input))
         .push(Row::new().push(password_input))
-        .push(Row::new().push(button))
+        .push(Row::new().push(login_button))
+        .push(
+            Row::new()
+                .push(Text::new("No account? "))
+                .push(register_button),
+        )
         .into()
 }

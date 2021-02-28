@@ -18,7 +18,7 @@ impl Model {
             course_screen: course_screen::Model::new(),
             courses_screen: courses_screen::Model::new(),
             login_screen: login_screen::Model::default(),
-            register_screen: register_screen::Model::new(),
+            register_screen: register_screen::Model::default(),
         }
     }
 

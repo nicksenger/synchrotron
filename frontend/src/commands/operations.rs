@@ -262,11 +262,11 @@ impl Into<document::Variables> for DocumentRequestPayload {
     fn into(self) -> document::Variables {
         document::Variables {
             document_id: self.document_id as i64,
-            bookmark_limit: std::i64::MAX,
+            bookmark_limit: std::i32::MAX as i64,
             bookmark_offset: 0,
-            page_limit: std::i64::MAX,
+            page_limit: std::i32::MAX as i64,
             page_offset: 0,
-            track_limit: std::i64::MAX,
+            track_limit: std::i32::MAX as i64,
             track_offset: 0,
         }
     }
