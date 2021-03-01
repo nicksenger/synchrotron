@@ -104,7 +104,8 @@ impl Model {
                 });
             }
             Msg::Application(application::Msg::DocumentResponse(Ok(x))) => {
-                self.documents_by_id.insert(x.document.id, x.document.clone());
+                self.documents_by_id
+                    .insert(x.document.id, x.document.clone());
 
                 let mut document_pages = x.pages.clone();
                 document_pages.sort_unstable_by_key(|p| p.page_number);
@@ -137,6 +138,10 @@ impl Model {
                         .push(b.id);
                     self.bookmarks_by_id.insert(b.id, b);
                 }
+            }
+            Msg::Application(application::Msg::PageRequest(payload)) => {
+                self.page_anchors.insert(payload.page_id, HashSet::new());
+                self.page_user_anchors.insert(payload.page_id, HashSet::new());
             }
             Msg::Application(application::Msg::PageResponse(Ok(x))) => {
                 self.pages_by_id.insert(x.page.id, x.page.clone());

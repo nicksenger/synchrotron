@@ -1,31 +1,51 @@
-use iced::{Button, Column, Element, Row, Text};
+use iced_web::{dodrio, dodrio::bumpalo, Bus};
 
 use crate::{
     messages::{routing, Msg},
     state::{Model, Route},
 };
 
-pub fn view(state: &mut Model) -> Element<Msg> {
+pub fn render<'b, 's>(
+    bump: &'b bumpalo::Bump,
+    state: &'s Model,
+    bus: &Bus<Msg>,
+) -> dodrio::Node<'b> {
+    use dodrio::builder::*;
     if state.ui.courses_screen.loading {
-        return Text::new("loading...").into();
+        return p(bump)
+            .child(text(
+                dodrio::bumpalo::collections::String::from_str_in("Loading...", bump)
+                    .into_bump_str(),
+            ))
+            .finish();
     }
 
-    let mut el = Column::new();
+    let ids_titles = state
+        .entities
+        .documents_by_id
+        .iter()
+        .map(|(&document_id, document)| (document_id, document.title.clone()));
 
-    for (document_id, button_state) in state.ui.courses_screen.btn_states.iter_mut() {
-        let d = state.entities.documents_by_id.get(document_id).unwrap();
-        el = el.push(
-            Row::new().push(
-                Button::new(
-                    button_state,
-                    Text::new(d.title.as_str()),
-                )
-                .on_press(Msg::Routing(routing::Msg::Navigate(Route::Course(
-                    d.id, None,
-                )))),
-            ),
-        );
-    }
+    div::<'b>(bump)
+        .children(bumpalo::collections::Vec::from_iter_in(
+            ids_titles.map(|(document_id, title)| {
+                let button_bus = bus.clone();
 
-    el.into()
+                p(bump).child(
+                    button::<'b>(bump)
+                        .child(text(
+                            dodrio::bumpalo::collections::String::from_str_in(title.as_str(), bump)
+                                .into_bump_str(),
+                        ))
+                        .on("click", move |_root, _vdom, event| {
+                            button_bus.publish(Msg::Routing(routing::Msg::Navigate(
+                                Route::Course(document_id, None),
+                            )));
+                        })
+                        .finish(),
+                ).finish()
+            }),
+            bump,
+        ))
+        .finish()
 }

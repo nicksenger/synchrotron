@@ -1,13 +1,15 @@
-use crate::messages::{Msg, application};
+use crate::messages::{application, ui, ui::course, Msg};
 
 pub struct Model {
     pub loading: bool,
+    pub relative_scroll: f32,
 }
 
 impl Model {
     pub fn new() -> Self {
         Self {
             loading: false,
+            relative_scroll: 0.0,
         }
     }
 
@@ -18,6 +20,9 @@ impl Model {
             }
             Msg::Application(application::Msg::DocumentResponse(resp)) => {
                 self.loading = false;
+            }
+            Msg::Ui(ui::Msg::Course(course::Msg::UpdateRelativeScroll(relative_scroll))) => {
+                self.relative_scroll = *relative_scroll;
             }
             _ => {}
         }

@@ -1,4 +1,4 @@
-use iced::{Application, Command, Element, Settings, Text};
+use iced_web::{Application, Command, Element};
 use wasm_bindgen::prelude::*;
 
 mod commands;
@@ -8,7 +8,7 @@ mod view;
 
 #[wasm_bindgen]
 pub fn main() {
-    Synchrotron::run(Settings::default());
+    Synchrotron::run(());
 }
 
 pub struct Synchrotron {
@@ -52,10 +52,10 @@ impl Application for Synchrotron {
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         self.state.update(&message);
-        commands::get_command(&message)
+        commands::get_command(&message, &self.state)
     }
 
     fn view(&mut self) -> Element<Self::Message> {
-        view::view(&mut self.state)
+        view::View::new(&self.state).into()
     }
 }
