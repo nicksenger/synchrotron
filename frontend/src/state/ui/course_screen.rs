@@ -13,6 +13,8 @@ pub struct Model {
     pub loading: bool,
     pub relative_scroll: f32,
     pub mode: CursorMode,
+    pub drag_x: i32,
+    pub drag_y: i32,
 }
 
 impl Model {
@@ -21,6 +23,8 @@ impl Model {
             loading: false,
             relative_scroll: 0.0,
             mode: CursorMode::Default,
+            drag_x: 0,
+            drag_y: 0,
         }
     }
 
@@ -41,6 +45,10 @@ impl Model {
                 } else {
                     self.mode = cursor_mode.clone();
                 }
+            }
+            Msg::Ui(ui::Msg::Course(course::Msg::DragStart(payload))) => {
+                self.drag_x = payload.x;
+                self.drag_y = payload.y;
             }
             _ => {}
         }

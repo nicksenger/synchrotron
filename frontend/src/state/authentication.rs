@@ -2,8 +2,8 @@ use crate::messages::{authentication, Msg};
 
 #[derive(Default)]
 pub struct Model {
-    active_user: Option<i32>,
-    token: Option<String>,
+    pub active_user: Option<i32>,
+    pub token: Option<String>,
 }
 
 impl Model {

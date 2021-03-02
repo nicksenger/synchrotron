@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use chrono::{DateTime, FixedOffset};
+use chrono::{DateTime, FixedOffset, TimeZone};
 
 use crate::messages::{application, authentication, Msg};
 
@@ -143,7 +143,8 @@ impl Model {
             }
             Msg::Application(application::Msg::PageRequest(payload)) => {
                 self.page_anchors.insert(payload.page_id, HashSet::new());
-                self.page_user_anchors.insert(payload.page_id, HashSet::new());
+                self.page_user_anchors
+                    .insert(payload.page_id, HashSet::new());
             }
             Msg::Application(application::Msg::PageResponse(Ok(x))) => {
                 self.pages_by_id.insert(x.page.id, x.page.clone());
@@ -169,22 +170,61 @@ impl Model {
                     .insert(x.anchor.id);
                 self.anchors_by_id.insert(x.anchor.id, x.anchor.clone());
             }
-            Msg::Application(application::Msg::CreateUserAnchorResponse(Ok(x))) => {
+            Msg::Application(application::Msg::CreateUserAnchorRequest(payload)) => {
                 self.page_user_anchors
-                    .entry(x.user_anchor.page_id)
+                    .entry(payload.page_id)
                     .or_insert(HashSet::new())
-                    .insert(x.user_anchor.id);
-                self.user_anchors_by_id
-                    .insert(x.user_anchor.id, x.user_anchor.clone());
+                    .insert(std::i32::MAX);
+                self.user_anchors_by_id.insert(
+                    std::i32::MAX,
+                    UserAnchor {
+                        id: std::i32::MAX,
+                        created_at: chrono::FixedOffset::west(5 * 10)
+                            .ymd(2016, 11, 08)
+                            .and_hms(0, 0, 0),
+                        updated_at: chrono::FixedOffset::west(5 * 10)
+                            .ymd(2016, 11, 08)
+                            .and_hms(0, 0, 0),
+                        position_top: payload.position_top,
+                        position_left: payload.position_left,
+                        owner: 0,
+                        title: payload.title.clone(),
+                        page_id: payload.page_id,
+                        track_id: payload.track_id,
+                        track_time: payload.track_time,
+                    },
+                );
+            }
+            Msg::Application(application::Msg::CreateUserAnchorResponse(resp)) => {
+                self.page_user_anchors.values_mut().for_each(|s| {
+                    s.remove(&std::i32::MAX);
+                });
+
+                self.user_anchors_by_id.remove(&std::i32::MAX);
+
+                if let Ok(x) = resp {
+                    self.page_user_anchors
+                        .entry(x.user_anchor.page_id)
+                        .or_insert(HashSet::new())
+                        .insert(x.user_anchor.id);
+                    self.user_anchors_by_id
+                        .insert(x.user_anchor.id, x.user_anchor.clone());
+                }
             }
             Msg::Application(application::Msg::DeleteAnchorRequest(x)) => {
-                if let Some(set) = self.page_anchors.get_mut(&x.anchor_id) {
+                if let Some(set) = self
+                    .page_anchors
+                    .get_mut(&self.anchors_by_id.get(&x.anchor_id).unwrap().page_id)
+                {
                     set.remove(&x.anchor_id);
                 }
                 self.anchors_by_id.remove(&x.anchor_id);
             }
             Msg::Application(application::Msg::DeleteUserAnchorRequest(x)) => {
-                if let Some(set) = self.page_user_anchors.get_mut(&x.anchor_id) {
+                if let Some(set) = self
+                    .page_user_anchors
+                    .get_mut(&self.user_anchors_by_id.get(&x.anchor_id).unwrap().page_id)
+                {
                     set.remove(&x.anchor_id);
                 }
                 self.user_anchors_by_id.remove(&x.anchor_id);

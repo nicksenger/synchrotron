@@ -32,6 +32,7 @@ features = [
   'HtmlAudioElement',
   'HtmlElement',
   'HtmlSelectElement',
+  'MouseEvent',
 ]
 
 [build-dependencies]

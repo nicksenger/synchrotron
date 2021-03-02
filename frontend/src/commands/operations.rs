@@ -6,7 +6,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
-use web_sys::{Request, RequestInit, RequestMode, Response, Headers};
+use web_sys::{Request, RequestInit, Response};
 
 use crate::{
     messages::{
@@ -97,6 +97,7 @@ pub struct DeleteUserAnchor;
 async fn graphQLRequest<T, U, V, W>(
     input: T,
     build_query: fn(U) -> QueryBody<U>,
+    token: Option<String>,
 ) -> Result<W, ErrorPayload>
 where
     T: Into<U> + Clone,
@@ -114,8 +115,14 @@ where
     );
     let request = Request::new_with_str(API_URL).unwrap();
     // Cannot set content-type header when using mode no-cors
-    request.headers().set("Content-Type", "application/json").unwrap();
+    request
+        .headers()
+        .set("Content-Type", "application/json")
+        .unwrap();
     request.headers().set("Accept", "application/json").unwrap();
+    if let Some(t) = token {
+        request.headers().set("Authorization", t.as_str()).unwrap();
+    }
     let window = web_sys::window().unwrap();
     let resp_value = JsFuture::from(window.fetch_with_request_and_init(&request, &opts))
         .await
@@ -173,8 +180,11 @@ impl Into<LoginSuccessPayload> for login::ResponseData {
     }
 }
 
-pub async fn login(input: LoginRequestPayload) -> Result<LoginSuccessPayload, ErrorPayload> {
-    graphQLRequest::<LoginRequestPayload, login::Variables, login::ResponseData, LoginSuccessPayload>(input, Login::build_query).await
+pub async fn login(
+    input: LoginRequestPayload,
+    token: Option<String>,
+) -> Result<LoginSuccessPayload, ErrorPayload> {
+    graphQLRequest::<LoginRequestPayload, login::Variables, login::ResponseData, LoginSuccessPayload>(input, Login::build_query, token).await
 }
 
 impl Into<i32> for register::UserRole {
@@ -210,13 +220,14 @@ impl Into<RegisterSuccessPayload> for register::ResponseData {
 
 pub async fn register(
     input: RegisterRequestPayload,
+    token: Option<String>,
 ) -> Result<RegisterSuccessPayload, ErrorPayload> {
     graphQLRequest::<
         RegisterRequestPayload,
         register::Variables,
         register::ResponseData,
         RegisterSuccessPayload,
-    >(input, Register::build_query)
+    >(input, Register::build_query, token)
     .await
 }
 
@@ -248,13 +259,14 @@ impl Into<AllDocumentsSuccessPayload> for all_documents::ResponseData {
 
 pub async fn all_documents(
     input: AllDocumentsRequestPayload,
+    token: Option<String>,
 ) -> Result<AllDocumentsSuccessPayload, ErrorPayload> {
     graphQLRequest::<
         AllDocumentsRequestPayload,
         all_documents::Variables,
         all_documents::ResponseData,
         AllDocumentsSuccessPayload,
-    >(input, AllDocuments::build_query)
+    >(input, AllDocuments::build_query, token)
     .await
 }
 
@@ -324,13 +336,14 @@ impl Into<DocumentSuccessPayload> for document::ResponseData {
 
 pub async fn document(
     input: DocumentRequestPayload,
+    token: Option<String>,
 ) -> Result<DocumentSuccessPayload, ErrorPayload> {
     graphQLRequest::<
         DocumentRequestPayload,
         document::Variables,
         document::ResponseData,
         DocumentSuccessPayload,
-    >(input, Document::build_query)
+    >(input, Document::build_query, token)
     .await
 }
 
@@ -391,10 +404,14 @@ impl Into<PageSuccessPayload> for page::ResponseData {
     }
 }
 
-pub async fn page(input: PageRequestPayload) -> Result<PageSuccessPayload, ErrorPayload> {
+pub async fn page(
+    input: PageRequestPayload,
+    token: Option<String>,
+) -> Result<PageSuccessPayload, ErrorPayload> {
     graphQLRequest::<PageRequestPayload, page::Variables, page::ResponseData, PageSuccessPayload>(
         input,
         Page::build_query,
+        token,
     )
     .await
 }
@@ -464,25 +481,27 @@ impl Into<CreateUserAnchorSuccessPayload> for create_user_anchor::ResponseData {
 
 pub async fn create_anchor(
     input: CreateAnchorRequestPayload,
+    token: Option<String>,
 ) -> Result<CreateAnchorSuccessPayload, ErrorPayload> {
     graphQLRequest::<
         CreateAnchorRequestPayload,
         create_anchor::Variables,
         create_anchor::ResponseData,
         CreateAnchorSuccessPayload,
-    >(input, CreateAnchor::build_query)
+    >(input, CreateAnchor::build_query, token)
     .await
 }
 
 pub async fn create_user_anchor(
     input: CreateAnchorRequestPayload,
+    token: Option<String>,
 ) -> Result<CreateUserAnchorSuccessPayload, ErrorPayload> {
     graphQLRequest::<
         CreateAnchorRequestPayload,
         create_user_anchor::Variables,
         create_user_anchor::ResponseData,
         CreateUserAnchorSuccessPayload,
-    >(input, CreateUserAnchor::build_query)
+    >(input, CreateUserAnchor::build_query, token)
     .await
 }
 
@@ -520,24 +539,26 @@ impl Into<DeleteAnchorSuccessPayload> for delete_user_anchor::ResponseData {
 
 pub async fn delete_anchor(
     input: DeleteAnchorRequestPayload,
+    token: Option<String>,
 ) -> Result<DeleteAnchorSuccessPayload, ErrorPayload> {
     graphQLRequest::<
         DeleteAnchorRequestPayload,
         delete_anchor::Variables,
         delete_anchor::ResponseData,
         DeleteAnchorSuccessPayload,
-    >(input, DeleteAnchor::build_query)
+    >(input, DeleteAnchor::build_query, token)
     .await
 }
 
 pub async fn delete_user_anchor(
     input: DeleteAnchorRequestPayload,
+    token: Option<String>,
 ) -> Result<DeleteAnchorSuccessPayload, ErrorPayload> {
     graphQLRequest::<
         DeleteAnchorRequestPayload,
         delete_user_anchor::Variables,
         delete_user_anchor::ResponseData,
         DeleteAnchorSuccessPayload,
-    >(input, DeleteUserAnchor::build_query)
+    >(input, DeleteUserAnchor::build_query, token)
     .await
 }

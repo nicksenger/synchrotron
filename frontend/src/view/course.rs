@@ -2,7 +2,6 @@ use std::collections::HashSet;
 
 use iced_web::{dodrio, dodrio::bumpalo, Bus};
 use wasm_bindgen::JsCast;
-use web_sys::console;
 
 use crate::{
     messages::{ui, Msg},
@@ -113,6 +112,9 @@ pub fn render<'b>(
                         .iter()
                         .map(|page_id| {
                             let page = state.entities.pages_by_id.get(page_id).unwrap();
+                            let p_id = page_id.clone();
+                            let anchor_creation_bus = bus.clone();
+
                             div(bump)
                                 .attr(
                                     "id",
@@ -132,6 +134,21 @@ pub fn render<'b>(
                                     )
                                     .into_bump_str(),
                                 )
+                                .on("click", move |_root, _vdom, event| {
+                                    let ev = event.dyn_into::<web_sys::MouseEvent>().unwrap();
+                                    let el = match ev
+                                            .target()
+                                            .and_then(|t| t.dyn_into::<web_sys::HtmlElement>().ok())
+                                        {
+                                            None => return,
+                                            Some(el) => el,
+                                        };
+                                    anchor_creation_bus.publish(Msg::Ui(ui::Msg::Course(ui::course::Msg::PageClick(ui::course::PageClickPayload {
+                                        page_id: p_id,
+                                        position_top: (ev.offset_y() as f32) / (el.client_height() as f32) * 100.0,
+                                        position_left: (ev.offset_x() as f32) / (el.client_width() as f32) * 100.0
+                                    }))));
+                                })
                                 .children(
                                     bumpalo::collections::Vec::from_iter_in(
                                         state.entities.page_anchors.get(page_id).unwrap_or(&HashSet::new()).iter().map(|anchor_id| {
@@ -139,10 +156,15 @@ pub fn render<'b>(
                                             let a_id = anchor_id.clone();
 
                                             let anchor_bus = bus.clone();
+                                            let anchor_drag_start_bus = bus.clone();
+                                            let anchor_drag_end_bus = bus.clone();
                                             let text_anchor_bus = bus.clone();
+                                            let text_anchor_drag_start_bus = bus.clone();
+                                            let text_anchor_drag_end_bus = bus.clone();
 
                                             if anchor.title == "" {
                                                 div(bump)
+                                                    .attr("draggable", "true")
                                                     .attr("style", bumpalo::collections::String::from_str_in(
                                                         format!(
                                                             "top: {}%; left: {}%;",
@@ -155,6 +177,29 @@ pub fn render<'b>(
                                                         anchor_bus.publish(Msg::Ui(ui::Msg::Course(
                                                             ui::course::Msg::SelectAnchor(
                                                                 a_id,
+                                                            ),
+                                                        )));
+                                                    })
+                                                    .on("dragstart", move |_root, _vdom, event| {
+                                                        let ev = event.dyn_into::<web_sys::MouseEvent>().unwrap();
+                                                        anchor_drag_start_bus.publish(Msg::Ui(ui::Msg::Course(
+                                                            ui::course::Msg::DragStart(
+                                                                ui::course::DragStartPayload {
+                                                                    x: ev.client_x(),
+                                                                    y: ev.client_y(),
+                                                                }
+                                                            ),
+                                                        )));
+                                                    })
+                                                    .on("dragend", move |_root, _vdom, event| {
+                                                        let ev = event.dyn_into::<web_sys::MouseEvent>().unwrap();
+                                                        anchor_drag_end_bus.publish(Msg::Ui(ui::Msg::Course(
+                                                            ui::course::Msg::DragAnchor(
+                                                                ui::course::DragAnchorPayload {
+                                                                    anchor_id: a_id,
+                                                                    x: ev.client_x(),
+                                                                    y: ev.client_y(),
+                                                                }
                                                             ),
                                                         )));
                                                     })
@@ -176,6 +221,7 @@ pub fn render<'b>(
                                                     .finish()
                                             } else {
                                                 a(bump)
+                                                    .attr("draggable", "true")
                                                     .attr("style", bumpalo::collections::String::from_str_in(
                                                         format!(
                                                             "top: {}%; left: {}%;",
@@ -188,6 +234,29 @@ pub fn render<'b>(
                                                         text_anchor_bus.publish(Msg::Ui(ui::Msg::Course(
                                                             ui::course::Msg::SelectAnchor(
                                                                 a_id,
+                                                            ),
+                                                        )));
+                                                    })
+                                                    .on("dragstart", move |_root, _vdom, event| {
+                                                        let ev = event.dyn_into::<web_sys::MouseEvent>().unwrap();
+                                                        text_anchor_drag_start_bus.publish(Msg::Ui(ui::Msg::Course(
+                                                            ui::course::Msg::DragStart(
+                                                                ui::course::DragStartPayload {
+                                                                    x: ev.client_x(),
+                                                                    y: ev.client_y(),
+                                                                }
+                                                            ),
+                                                        )));
+                                                    })
+                                                    .on("dragend", move |_root, _vdom, event| {
+                                                        let ev = event.dyn_into::<web_sys::MouseEvent>().unwrap();
+                                                        text_anchor_drag_end_bus.publish(Msg::Ui(ui::Msg::Course(
+                                                            ui::course::Msg::DragAnchor(
+                                                                ui::course::DragAnchorPayload {
+                                                                    anchor_id: a_id,
+                                                                    x: ev.client_x(),
+                                                                    y: ev.client_y(),
+                                                                }
                                                             ),
                                                         )));
                                                     })
@@ -207,10 +276,15 @@ pub fn render<'b>(
                                                 let a_id = anchor_id.clone();
 
                                                 let user_anchor_bus = bus.clone();
+                                                let user_anchor_drag_start_bus = bus.clone();
+                                                let user_anchor_drag_end_bus = bus.clone();
                                                 let text_user_anchor_bus = bus.clone();
+                                                let text_user_anchor_drag_start_bus = bus.clone();
+                                                let text_user_anchor_drag_end_bus = bus.clone();
     
                                                 if anchor.title == "" {
                                                     div(bump)
+                                                        .attr("draggable", "true")
                                                         .attr("class", "user_anchor")
                                                         .attr("style", bumpalo::collections::String::from_str_in(
                                                             format!(
@@ -224,6 +298,29 @@ pub fn render<'b>(
                                                             user_anchor_bus.publish(Msg::Ui(ui::Msg::Course(
                                                                 ui::course::Msg::SelectUserAnchor(
                                                                     a_id,
+                                                                ),
+                                                            )));
+                                                        })
+                                                        .on("dragstart", move |_root, _vdom, event| {
+                                                            let ev = event.dyn_into::<web_sys::MouseEvent>().unwrap();
+                                                            user_anchor_drag_start_bus.publish(Msg::Ui(ui::Msg::Course(
+                                                                ui::course::Msg::DragStart(
+                                                                    ui::course::DragStartPayload {
+                                                                        x: ev.client_x(),
+                                                                        y: ev.client_y(),
+                                                                    }
+                                                                ),
+                                                            )));
+                                                        })
+                                                        .on("dragend", move |_root, _vdom, event| {
+                                                            let ev = event.dyn_into::<web_sys::MouseEvent>().unwrap();
+                                                            user_anchor_drag_end_bus.publish(Msg::Ui(ui::Msg::Course(
+                                                                ui::course::Msg::DragUserAnchor(
+                                                                    ui::course::DragUserAnchorPayload {
+                                                                        user_anchor_id: a_id,
+                                                                        x: ev.client_x(),
+                                                                        y: ev.client_y(),
+                                                                    }
                                                                 ),
                                                             )));
                                                         })
@@ -245,6 +342,7 @@ pub fn render<'b>(
                                                         .finish()
                                                 } else {
                                                     a(bump)
+                                                        .attr("draggable", "true")
                                                         .attr("class", "user_anchor")
                                                         .attr("style", bumpalo::collections::String::from_str_in(
                                                             format!(
@@ -258,6 +356,29 @@ pub fn render<'b>(
                                                             text_user_anchor_bus.publish(Msg::Ui(ui::Msg::Course(
                                                                 ui::course::Msg::SelectUserAnchor(
                                                                     a_id,
+                                                                ),
+                                                            )));
+                                                        })
+                                                        .on("dragstart", move |_root, _vdom, event| {
+                                                            let ev = event.dyn_into::<web_sys::MouseEvent>().unwrap();
+                                                            text_user_anchor_drag_start_bus.publish(Msg::Ui(ui::Msg::Course(
+                                                                ui::course::Msg::DragStart(
+                                                                    ui::course::DragStartPayload {
+                                                                        x: ev.client_x(),
+                                                                        y: ev.client_y(),
+                                                                    }
+                                                                ),
+                                                            )));
+                                                        })
+                                                        .on("dragend", move |_root, _vdom, event| {
+                                                            let ev = event.dyn_into::<web_sys::MouseEvent>().unwrap();
+                                                            text_user_anchor_drag_end_bus.publish(Msg::Ui(ui::Msg::Course(
+                                                                ui::course::Msg::DragUserAnchor(
+                                                                    ui::course::DragUserAnchorPayload {
+                                                                        user_anchor_id: a_id,
+                                                                        x: ev.client_x(),
+                                                                        y: ev.client_y(),
+                                                                    }
                                                                 ),
                                                             )));
                                                         })
@@ -340,6 +461,7 @@ pub fn render<'b>(
                                     .attr("id", "audio")
                                     .attr("controls", "true")
                                     .attr("class", "synchrotron__audio")
+                                    .attr("src", bumpalo::collections::String::from_str_in(format!("https://synchrotron.nsenger.com/{}", state.entities.tracks_by_id.get(&state.entities.document_tracks.get(&document_id).unwrap().first().unwrap()).unwrap().audio_path).as_str(), bump).into_bump_str())
                                     .finish(),
                                 select(bump)
                                     .attr("class", "synchrotron__dropdown")

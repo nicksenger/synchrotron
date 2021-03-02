@@ -10,12 +10,12 @@ use crate::{
 pub fn get_command(msg: &authentication::Msg) -> Command<Msg> {
     match msg {
         authentication::Msg::LoginRequest(payload) => {
-            Command::perform(operations::login(payload.clone()), |x| {
+            Command::perform(operations::login(payload.clone(), None), |x| {
                 Msg::Authentication(authentication::Msg::LoginResponse(x))
             })
         }
         authentication::Msg::RegisterRequest(payload) => {
-            Command::perform(operations::register(payload.clone()), |x| {
+            Command::perform(operations::register(payload.clone(), None), |x| {
                 Msg::Authentication(authentication::Msg::RegisterResponse(x))
             })
         }
