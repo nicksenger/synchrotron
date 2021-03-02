@@ -29,6 +29,9 @@ features = [
   'RequestMode',
   'Response',
   'Window',
+  'HtmlAudioElement',
+  'HtmlElement',
+  'HtmlSelectElement',
 ]
 
 [build-dependencies]

@@ -117,6 +117,7 @@ impl Model {
                     self.pages_by_id.insert(p.id, p);
                 }
 
+                self.document_tracks.insert(x.document.id, vec![]);
                 let mut document_tracks = x.tracks.clone();
                 document_tracks.sort_unstable_by_key(|t| t.track_number);
                 for t in document_tracks {
@@ -127,6 +128,7 @@ impl Model {
                     self.tracks_by_id.insert(t.id, t);
                 }
 
+                self.document_bookmarks.insert(x.document.id, vec![]);
                 let mut document_bookmarks = x.bookmarks.clone();
                 document_bookmarks.sort_unstable_by_key(|b| {
                     self.pages_by_id.get(&b.page_id).unwrap().page_number
