@@ -143,6 +143,23 @@ pub fn get_command(msg: &ui::Msg, state: &Model) -> Command<Msg> {
 
             Command::none()
         }
+        ui::Msg::Course(ui::course::Msg::TogglePlayback) => {
+            let window = web_sys::window().expect("no global `window` exists");
+            let document = window.document().expect("should have a document on window");
+            let el = document
+                .get_element_by_id("audio")
+                .unwrap()
+                .dyn_into::<web_sys::HtmlAudioElement>()
+                .unwrap();
+            
+            if el.paused() {
+                el.play();
+            } else {
+                el.pause();
+            }
+
+            Command::none()
+        }
         _ => Command::none(),
     }
 }

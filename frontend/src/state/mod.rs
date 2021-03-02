@@ -1,7 +1,7 @@
 mod authentication;
 pub mod entities;
 mod routing;
-mod ui;
+pub mod ui;
 
 pub use routing::Route;
 use crate::messages::Msg;

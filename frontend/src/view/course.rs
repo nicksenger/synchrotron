@@ -2,10 +2,11 @@ use std::collections::HashSet;
 
 use iced_web::{dodrio, dodrio::bumpalo, Bus};
 use wasm_bindgen::JsCast;
+use web_sys::console;
 
 use crate::{
     messages::{ui, Msg},
-    state::Model,
+    state::{Model, ui::course_screen::CursorMode},
 };
 
 pub fn render<'b>(
@@ -25,16 +26,69 @@ pub fn render<'b>(
             .finish();
     }
 
+    let current_mode = state.ui.course_screen.mode.clone();
+    let hotkey_bus = bus.clone();
     let scroll_bus = bus.clone();
     let track_bus = bus.clone();
     let bookmark_bus = bus.clone();
 
     div::<'b>(bump)
+        .attr("tabindex", "0")
+        .attr("autofocus", "true")
         .attr("class", "synchrotron__inner")
+        .on("keydown", move |_root, _vdom, event| {
+            let ev = event.dyn_into::<web_sys::KeyboardEvent>().ok().unwrap();
+            if ev.shift_key() {
+                match ev.key().as_str() {
+                    "A" => {
+                        hotkey_bus.publish(Msg::Ui(ui::Msg::Course(
+                            ui::course::Msg::ToggleMode(CursorMode::Add),
+                        )));
+                    }
+                    "M" => {
+                        hotkey_bus.publish(Msg::Ui(ui::Msg::Course(
+                            ui::course::Msg::ToggleMode(CursorMode::Move),
+                        )));
+                    },
+                    "R" => {
+                        hotkey_bus.publish(Msg::Ui(ui::Msg::Course(
+                            ui::course::Msg::ToggleMode(CursorMode::Delete),
+                        )));
+                    },
+                    "U" => {
+                        hotkey_bus.publish(Msg::Ui(ui::Msg::Course(
+                            ui::course::Msg::ToggleMode(CursorMode::Upgrade),
+                        )));
+                    },
+                    "P" => {
+                        hotkey_bus.publish(Msg::Ui(ui::Msg::Course(
+                            ui::course::Msg::TogglePlayback,
+                        )));
+                    },
+                    _ => {},
+                }
+            }
+            
+        })
         .children(bumpalo::collections::Vec::from_iter_in(
             vec![div(bump)
                 .attr("id", "page-container")
                 .attr("class", "synchrotron__page-container")
+                .attr(
+                    "style",
+                    bumpalo::collections::String::from_str_in(
+                        format!("cursor: {}", match state.ui.course_screen.mode {
+                            CursorMode::Add => "pointer",
+                            CursorMode::Delete => "no-drop",
+                            CursorMode::Move => "grab",
+                            CursorMode::Upgrade => "copy",
+                            _ => "auto"
+                        })
+                            .as_str(),
+                        bump,
+                    )
+                    .into_bump_str()
+                )
                 .on("scroll", move |_root, _vdom, event| {
                     let el = match event
                         .target()

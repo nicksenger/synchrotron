@@ -1,6 +1,6 @@
 use crate::messages::Msg;
 
-mod course_screen;
+pub mod course_screen;
 mod courses_screen;
 mod login_screen;
 mod register_screen;
