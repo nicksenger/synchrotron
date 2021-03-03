@@ -271,7 +271,7 @@ pub fn render<'b>(
                                                     .finish()
                                             }
                                         }).chain(
-                                            state.entities.page_user_anchors.get(page_id).unwrap_or(&HashSet::new()).iter().map(|anchor_id| {
+                                            state.entities.page_user_anchors.get(page_id).unwrap_or(&HashSet::new()).iter().filter(|anchor_id| state.authentication.active_user.map(|u| state.entities.users_by_id.get(&u).unwrap().role).unwrap_or(0) > 0 || state.authentication.active_user.unwrap_or(std::i32::MAX) == state.entities.user_anchors_by_id.get(anchor_id).unwrap().owner).map(|anchor_id| {
                                                 let anchor = state.entities.user_anchors_by_id.get(anchor_id).unwrap();
                                                 let a_id = anchor_id.clone();
 
