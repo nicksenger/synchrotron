@@ -40,8 +40,8 @@ RUN sed -i 's/localhost/host.docker.internal/g' /usr/src/microbiome/users-servic
 RUN sed -i 's/localhost/host.docker.internal/g' /usr/src/microbiome/courses-service/.env
 
 # Only code changes should need to compile
-RUN cargo build --target x86_64-unknown-linux-musl --release -p users-service
-RUN cargo build --target x86_64-unknown-linux-musl --release -p courses-service
+# RUN cargo build --target x86_64-unknown-linux-musl --release -p users-service
+# RUN cargo build --target x86_64-unknown-linux-musl --release -p courses-service
 RUN cargo build --target x86_64-unknown-linux-musl --release -p api-gateway
 
 CMD echo ""
