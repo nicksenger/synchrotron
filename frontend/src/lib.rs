@@ -1,3 +1,4 @@
+use futures::future::ready;
 use iced_web::{Application, Command, Element, Subscription};
 use wasm_bindgen::prelude::*;
 
@@ -7,7 +8,7 @@ mod state;
 mod subscription;
 mod view;
 
-use messages::{Msg, routing};
+use messages::{routing, Msg};
 
 #[wasm_bindgen]
 pub fn main() {
@@ -53,7 +54,15 @@ impl Application for Synchrotron {
     }
 
     fn new(_flags: ()) -> (Synchrotron, Command<Self::Message>) {
-        (Synchrotron::new(), Command::none())
+        let synchrotron = Synchrotron::new();
+        let route = synchrotron.state.routing.route.clone();
+        (
+            synchrotron,
+            Command::perform(
+                ready(routing::Msg::Navigate(route)),
+                |msg| Msg::Routing(msg),
+            ),
+        )
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
@@ -66,6 +75,7 @@ impl Application for Synchrotron {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        subscription::route_change(self.state.routing.route.clone()).map(|r| Msg::Routing(routing::Msg::Navigate(r)))
+        subscription::route_change(self.state.routing.route.clone())
+            .map(|r| Msg::Routing(routing::Msg::Navigate(r)))
     }
 }

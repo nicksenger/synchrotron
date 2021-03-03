@@ -20,7 +20,7 @@ pub struct Model {
 impl Model {
     pub fn new() -> Self {
         Self {
-            loading: false,
+            loading: true,
             relative_scroll: 0.0,
             mode: CursorMode::Default,
             drag_x: 0,
