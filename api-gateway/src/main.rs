@@ -19,16 +19,20 @@ struct Opt {
 }
 
 async fn index(req: HttpRequest) -> io::Result<NamedFile> {
-    let mut path = req.match_info().query("path").split("/").peekable();
-    match path.peek() {
-        Some(&"") | None => Ok(NamedFile::open::<PathBuf>(
+    let mut path = req
+        .match_info()
+        .query("path")
+        .split("/")
+        .collect::<Vec<&str>>();
+    let seg = path.pop().unwrap_or("");
+    if seg.find('.').is_some() {
+        Ok(NamedFile::open::<PathBuf>(
+            format!("./static/{}/{}", path.join("/"), seg).parse().unwrap(),
+        )?)
+    } else {
+        Ok(NamedFile::open::<PathBuf>(
             "./static/index.html".parse().unwrap(),
-        )?),
-        Some(_) => Ok(NamedFile::open::<PathBuf>(
-            format!("./static/{}", path.collect::<Vec<&str>>().join("/"))
-                .parse()
-                .unwrap(),
-        )?),
+        )?)
     }
 }
 
