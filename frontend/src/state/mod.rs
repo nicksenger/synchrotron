@@ -14,12 +14,12 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn new(url: String) -> Self {
+    pub fn new(pathname: String) -> Self {
         Self {
             authentication: authentication::Model::default(),
             entities: entities::Model::default(),
             ui: ui::Model::new(),
-            routing: routing::Model::new(url),
+            routing: routing::Model::new(pathname),
         }
     }
 

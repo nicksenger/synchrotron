@@ -1,6 +1,39 @@
 use crate::messages::{routing, Msg};
 
-#[derive(Clone, Debug, PartialEq, Eq)]
+impl From<String> for Route {
+    fn from(x: String) -> Self {
+        let mut path = x.split("/").into_iter();
+        path.next();
+        match path.next() {
+            None | Some("") | Some("login") => Route::Login,
+            Some("register") => Route::Register,
+            Some("courses") => Route::Courses,
+            Some("course") => match path.next() {
+                Some(id) => id
+                    .parse::<i32>()
+                    .map(|document_id| Route::Course(document_id, None))
+                    .unwrap_or(Route::NotFound),
+                _ => Route::NotFound,
+            },
+            _ => Route::NotFound,
+        }
+    }
+}
+
+impl From<Route> for String {
+    fn from(x: Route) -> Self {
+        let path = match x {
+            Route::Login => vec!["login".to_owned()],
+            Route::Register => vec!["register".to_owned()],
+            Route::Courses => vec!["courses".to_owned()],
+            Route::Course(document_id, _) => vec!["course".to_owned(), document_id.to_string()],
+            _ => vec!["".to_owned()],
+        };
+        format!("/{}", path.join("/"))
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub enum Route {
     Login,
     Register,
@@ -14,9 +47,9 @@ pub struct Model {
 }
 
 impl Model {
-    pub fn new(url: String) -> Self {
+    pub fn new(pathname: String) -> Self {
         Self {
-            route: Route::Login,
+            route: Route::from(pathname),
         }
     }
 

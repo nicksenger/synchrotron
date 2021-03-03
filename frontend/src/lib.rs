@@ -1,10 +1,13 @@
-use iced_web::{Application, Command, Element};
+use iced_web::{Application, Command, Element, Subscription};
 use wasm_bindgen::prelude::*;
 
 mod commands;
 mod messages;
 mod state;
+mod subscription;
 mod view;
+
+use messages::{Msg, routing};
 
 #[wasm_bindgen]
 pub fn main() {
@@ -17,8 +20,11 @@ pub struct Synchrotron {
 
 impl Synchrotron {
     pub fn new() -> Self {
+        let pathname = web_sys::window()
+            .and_then(|window| window.location().pathname().ok())
+            .unwrap_or("".to_owned());
         Self {
-            state: state::Model::new("".to_owned()),
+            state: state::Model::new(pathname),
         }
     }
 }
@@ -57,5 +63,9 @@ impl Application for Synchrotron {
 
     fn view(&mut self) -> Element<Self::Message> {
         view::View::new(&self.state).into()
+    }
+
+    fn subscription(&self) -> Subscription<Self::Message> {
+        subscription::route_change(self.state.routing.route.clone()).map(|r| Msg::Routing(routing::Msg::Navigate(r)))
     }
 }

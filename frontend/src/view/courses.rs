@@ -38,7 +38,7 @@ pub fn render<'b, 's>(
                                 .into_bump_str(),
                         ))
                         .on("click", move |_root, _vdom, event| {
-                            button_bus.publish(Msg::Routing(routing::Msg::Navigate(
+                            button_bus.publish(Msg::Routing(routing::Msg::Push(
                                 Route::Course(document_id, None),
                             )));
                         })

@@ -120,7 +120,7 @@ pub fn render<'b, 's>(
                             ))
                             .on("click", move |_root, _vdom, event| {
                                 link_bus
-                                    .publish(Msg::Routing(routing::Msg::Navigate(Route::Register)));
+                                    .publish(Msg::Routing(routing::Msg::Push(Route::Register)));
                             })
                             .finish(),
                     ],

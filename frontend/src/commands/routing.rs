@@ -8,9 +8,23 @@ use crate::{
 
 pub fn get_command(msg: &routing::Msg) -> Command<Msg> {
     match msg {
-        routing::Msg::Push(r) => Command::perform(ready(r.clone()), |r| {
-            Msg::Routing(routing::Msg::Navigate(r))
-        }),
+        routing::Msg::Push(r) => {
+            let new_url = String::from(r.clone());
+            let _ = web_sys::window().and_then(|window| {
+                window.history().ok().and_then(|history| {
+                    history
+                        .push_state_with_url(
+                            &wasm_bindgen::JsValue::null(),
+                            "",
+                            Some(new_url.as_str()),
+                        )
+                        .ok()
+                })
+            });
+            Command::perform(ready(r.clone()), |r| {
+                Msg::Routing(routing::Msg::Navigate(r))
+            })
+        }
         routing::Msg::Navigate(r) => match r {
             Route::Courses => Command::perform(ready(()), |_| {
                 Msg::Application(application::Msg::AllDocumentsRequest(
@@ -27,7 +41,7 @@ pub fn get_command(msg: &routing::Msg) -> Command<Msg> {
                         application::DocumentRequestPayload { document_id },
                     ))
                 })
-            },
+            }
             _ => Command::none(),
         },
         _ => Command::none(),

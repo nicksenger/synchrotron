@@ -122,7 +122,7 @@ pub fn render<'b, 's>(
                                     .into_bump_str(),
                                 ))
                                 .on("click", move |_root, _vdom, event| {
-                                    link_bus.publish(Msg::Routing(routing::Msg::Navigate(
+                                    link_bus.publish(Msg::Routing(routing::Msg::Push(
                                         Route::Login,
                                     )));
                                 })
