@@ -1,19 +1,17 @@
-# Microbiome
+# Synchrotron
 
-Microbiome is a full stack dockerized Rust boilerplate. It includes a workspace containing a GRPC authentication service, API gateway, and WASM frontend.
+Synchrotron is a full stack Rust web application written using [SQLx](https://github.com/launchbadge/sqlx) [Tonic](https://github.com/hyperium/tonic), [Juniper](https://github.com/graphql-rust/juniper) and [Iced](https://github.com/hecrj/iced).
 
-## API Gateway
+It's used to map audio to text and currently supports a few foreign language courses. Check it out live at https://synchrotron.nsenger.com
 
-The API gateway & static file server is contained within the `api-gateway` package. It exposes a GraphQL API using [Juniper](https://github.com/graphql-rust/juniper) and [Actix Web](https://github.com/actix/actix-web).
+## User manual
 
-## GRPC services
+You will need to create an account to contribute to the mapping effort. Once you have an account, you can link the audio to specific points in the text using the following hotkeys and then clicking on the document:
 
-Protobufs and generated Rust code for GRPC service(s) are contained within the `schema` package. All services and the API gateway depend on `schema` to facilitate type-safe communication.
+- SHIFT + P: play/pause the audio
+- SHIFT + A: clicking on the document will create an "anchor" in the document which will play the audio from its current position when clicked
+- SHIFT + R: clicking on an anchor will remove that anchor from the document
+- SHIFT + M: dragging an anchor will move it to a new position
+- SHIFT + U: clicking on an anchor will upgrade it from green to blue (only administrator/moderator users can do this)
 
-### Users service
-
-The `users-service` package is an example GRPC microservice built using [Tonic](https://github.com/hyperium/tonic). It uses [SQLx](https://github.com/launchbadge/sqlx) to perform compile-time checked SQL queries.
-
-## Frontend
-
-The `frontend` package is a very simple example WASM application built using [Moxie](https://moxie.rs/). It uses Juniper's schema introspection in combination with [graphql-client](https://github.com/graphql-rust/graphql-client) to achieve type-safe communication with the API gateway, and manages state and side-effects using [moxie-streams](https://github.com/nicksenger/moxie-streams).
+Currently both approved and unapproved anchors are visible to all users.
