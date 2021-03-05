@@ -4,4 +4,5 @@ use crate::state::Route;
 pub enum Msg {
     Navigate(Route),
     Push(Route),
+    Replace(Route),
 }

@@ -1,13 +1,14 @@
 use futures::future::ready;
 use iced::Command;
+use wasm_bindgen::JsCast;
 
 use super::operations;
 use crate::{
     messages::{
-        application::{self, PageRequestPayload},
+        application::{self, JumpToAnchorRequestPayload, PageRequestPayload},
         Msg,
     },
-    state::Model,
+    state::{Model, Route},
 };
 
 pub fn get_command(msg: &application::Msg, state: &Model) -> Command<Msg> {
@@ -46,6 +47,40 @@ pub fn get_command(msg: &application::Msg, state: &Model) -> Command<Msg> {
             operations::delete_user_anchor(payload.clone(), state.authentication.token.clone()),
             |x| Msg::Application(application::Msg::DeleteUserAnchorResponse(x)),
         ),
+        application::Msg::DocumentResponse(Ok(_)) => {
+            if let Route::Course(_, Some(anchor_id)) = state.routing.route {
+                Command::perform(
+                    operations::jump_to_anchor(
+                        JumpToAnchorRequestPayload { anchor_id },
+                        state.authentication.token.clone(),
+                    ),
+                    |x| Msg::Application(application::Msg::JumpToAnchorResponse(x)),
+                )
+            } else {
+                Command::none()
+            }
+        }
+        application::Msg::JumpToAnchorResponse(Ok(payload)) => {
+            let anchor_id = payload.anchor.id;
+            Command::perform(
+                operations::page(PageRequestPayload {
+                    page_id: payload.anchor.page_id
+                }, state.authentication.token.clone()),
+                move |x| {
+                    let window = web_sys::window().expect("no global `window` exists");
+                    let document = window.document().expect("should have a document on window");
+
+                    document
+                        .get_element_by_id(format!("a-{}", anchor_id).as_str())
+                        .and_then(|x| {
+                            x.dyn_into::<web_sys::HtmlElement>().ok()
+                        })
+                        .and_then(|el| Some(el.scroll_into_view()));
+                    
+                    Msg::Application(application::Msg::PageResponse(x))
+                }
+            )
+        }
         _ => Command::none(),
     }
 }

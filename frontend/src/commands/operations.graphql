@@ -165,3 +165,21 @@ mutation DeleteUserAnchor($userAnchorId: Int!) {
     success
   }
 }
+
+query JumpToAnchor($anchorId: Int!) {
+  anchorById(id: $anchorId) {
+    id
+    title
+    positionTop
+    positionLeft
+    trackTime
+    track {
+      id
+    }
+    createdAt
+    updatedAt
+    page {
+      id
+    }
+  }
+}

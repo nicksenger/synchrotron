@@ -229,6 +229,14 @@ impl Model {
                 }
                 self.user_anchors_by_id.remove(&x.anchor_id);
             }
+            Msg::Application(application::Msg::JumpToAnchorResponse(Ok(payload))) => {
+                self.anchors_by_id
+                    .insert(payload.anchor.id, payload.anchor.clone());
+                self.page_anchors
+                    .entry(payload.anchor.page_id)
+                    .or_insert(HashSet::new())
+                    .insert(payload.anchor.id);
+            }
             _ => {}
         }
     }

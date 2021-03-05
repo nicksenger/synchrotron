@@ -8,24 +8,12 @@ use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, Response};
 
-use crate::{
-    messages::{
-        application::{
-            AllDocumentsRequestPayload, AllDocumentsSuccessPayload, CreateAnchorRequestPayload,
-            CreateAnchorSuccessPayload, CreateUserAnchorSuccessPayload, DeleteAnchorRequestPayload,
-            DeleteAnchorSuccessPayload, DocumentRequestPayload, DocumentSuccessPayload,
-            PageRequestPayload, PageSuccessPayload,
-        },
-        authentication::{
+use crate::{messages::{ErrorPayload, application::{AllDocumentsRequestPayload, AllDocumentsSuccessPayload, CreateAnchorRequestPayload, CreateAnchorSuccessPayload, CreateUserAnchorSuccessPayload, DeleteAnchorRequestPayload, DeleteAnchorSuccessPayload, DocumentRequestPayload, DocumentSuccessPayload, JumpToAnchorRequestPayload, JumpToAnchorSuccessPayload, PageRequestPayload, PageSuccessPayload}, authentication::{
             LoginRequestPayload, LoginSuccessPayload, RegisterRequestPayload,
             RegisterSuccessPayload,
-        },
-        ErrorPayload,
-    },
-    state::entities::{
+        }}, state::entities::{
         Anchor, Bookmark, Document as SchemaDocument, Page as SchemaPage, Track, User, UserAnchor,
-    },
-};
+    }};
 
 const API_URL: &str = "https://synchrotron.nsenger.com/graphql";
 
@@ -93,6 +81,13 @@ pub struct CreateUserAnchor;
     query_path = "src/commands/operations.graphql"
 )]
 pub struct DeleteUserAnchor;
+
+#[derive(GraphQLQuery)]
+#[graphql(
+    schema_path = "src/gen/schema.json",
+    query_path = "src/commands/operations.graphql"
+)]
+pub struct JumpToAnchor;
 
 async fn graphQLRequest<T, U, V, W>(
     input: T,
@@ -560,5 +555,44 @@ pub async fn delete_user_anchor(
         delete_user_anchor::ResponseData,
         DeleteAnchorSuccessPayload,
     >(input, DeleteUserAnchor::build_query, token)
+    .await
+}
+
+impl Into<jump_to_anchor::Variables> for JumpToAnchorRequestPayload {
+    fn into(self) -> jump_to_anchor::Variables {
+        jump_to_anchor::Variables {
+            anchor_id: self.anchor_id as i64,
+        }
+    }
+}
+
+impl Into<JumpToAnchorSuccessPayload> for jump_to_anchor::ResponseData {
+    fn into(self) -> JumpToAnchorSuccessPayload {
+        JumpToAnchorSuccessPayload {
+            anchor: Anchor {
+                id: self.anchor_by_id.id as i32,
+                title: self.anchor_by_id.title,
+                track_time: self.anchor_by_id.track_time as f32,
+                position_top: self.anchor_by_id.position_top as f32,
+                position_left: self.anchor_by_id.position_left as f32,
+                page_id: self.anchor_by_id.page.id as i32,
+                track_id: self.anchor_by_id.track.id as i32,
+                created_at: self.anchor_by_id.created_at,
+                updated_at: self.anchor_by_id.updated_at,
+            },
+        }
+    }
+}
+
+pub async fn jump_to_anchor(
+    input: JumpToAnchorRequestPayload,
+    token: Option<String>,
+) -> Result<JumpToAnchorSuccessPayload, ErrorPayload> {
+    graphQLRequest::<
+        JumpToAnchorRequestPayload,
+        jump_to_anchor::Variables,
+        jump_to_anchor::ResponseData,
+        JumpToAnchorSuccessPayload,
+    >(input, JumpToAnchor::build_query, token)
     .await
 }

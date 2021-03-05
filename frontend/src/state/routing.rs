@@ -11,7 +11,13 @@ impl From<String> for Route {
             Some("course") => match path.next() {
                 Some(id) => id
                     .parse::<i32>()
-                    .map(|document_id| Route::Course(document_id, None))
+                    .map(|document_id| match path.next() {
+                        Some(a_id) => a_id
+                            .parse::<i32>()
+                            .map(|anchor_id| Route::Course(document_id, Some(anchor_id)))
+                            .unwrap_or(Route::NotFound),
+                        _ => Route::Course(document_id, None),
+                    })
                     .unwrap_or(Route::NotFound),
                 _ => Route::NotFound,
             },
@@ -26,7 +32,13 @@ impl From<Route> for String {
             Route::Login => vec!["login".to_owned()],
             Route::Register => vec!["register".to_owned()],
             Route::Courses => vec!["courses".to_owned()],
-            Route::Course(document_id, _) => vec!["course".to_owned(), document_id.to_string()],
+            Route::Course(document_id, anchor_id) => {
+                if let Some(id) = anchor_id {
+                    vec!["course".to_owned(), document_id.to_string(), id.to_string()]
+                } else {
+                    vec!["course".to_owned(), document_id.to_string()]
+                }
+            }
             _ => vec!["".to_owned()],
         };
         format!("/{}", path.join("/"))

@@ -67,6 +67,16 @@ pub struct DeleteAnchorSuccessPayload {
 }
 
 #[derive(Clone, Debug)]
+pub struct JumpToAnchorRequestPayload {
+    pub anchor_id: i32,
+}
+
+#[derive(Clone, Debug)]
+pub struct JumpToAnchorSuccessPayload {
+    pub anchor: Anchor,
+}
+
+#[derive(Clone, Debug)]
 pub enum Msg {
     AllDocumentsRequest(AllDocumentsRequestPayload),
     AllDocumentsResponse(Result<AllDocumentsSuccessPayload, ErrorPayload>),
@@ -82,4 +92,5 @@ pub enum Msg {
     CreateUserAnchorResponse(Result<CreateUserAnchorSuccessPayload, ErrorPayload>),
     DeleteUserAnchorRequest(DeleteAnchorRequestPayload),
     DeleteUserAnchorResponse(Result<DeleteAnchorSuccessPayload, ErrorPayload>),
+    JumpToAnchorResponse(Result<JumpToAnchorSuccessPayload, ErrorPayload>),
 }

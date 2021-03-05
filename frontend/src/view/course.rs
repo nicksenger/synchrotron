@@ -119,7 +119,7 @@ pub fn render<'b>(
                                 .attr(
                                     "id",
                                     bumpalo::collections::String::from_str_in(
-                                        format!("{}", page.id).as_str(),
+                                        format!("p-{}", page.id).as_str(),
                                         bump,
                                     )
                                     .into_bump_str(),
@@ -204,7 +204,7 @@ pub fn render<'b>(
                                                         )));
                                                     })
                                                     .attr("id", bumpalo::collections::String::from_str_in(
-                                                        format!("{}", anchor_id).as_str(),
+                                                        format!("a-{}", anchor_id).as_str(),
                                                         bump
                                                     ).into_bump_str())
                                                     .child(
@@ -325,7 +325,7 @@ pub fn render<'b>(
                                                             )));
                                                         })
                                                         .attr("id", bumpalo::collections::String::from_str_in(
-                                                            format!("{}", anchor_id).as_str(),
+                                                            format!("ua-{}", anchor_id).as_str(),
                                                             bump
                                                         ).into_bump_str())
                                                         .child(

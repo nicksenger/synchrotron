@@ -7,7 +7,7 @@ use crate::{
         application::{
             self, CreateAnchorRequestPayload, DeleteAnchorRequestPayload, PageRequestPayload,
         },
-        ui, Msg,
+        routing, ui, Msg,
     },
     state::{ui::course_screen::CursorMode, Model, Route},
 };
@@ -83,6 +83,13 @@ pub fn get_command(msg: &ui::Msg, state: &Model) -> Command<Msg> {
                     );
                     el.set_current_time(anchor.track_time as f64);
                     el.play();
+
+                    if let Route::Course(document_id, _) = state.routing.route {
+                        return Command::perform(
+                            ready(routing::Msg::Replace(Route::Course(document_id, Some(anchor.id)))),
+                            Msg::Routing,
+                        );
+                    }
 
                     Command::none()
                 }
@@ -277,20 +284,12 @@ pub fn get_command(msg: &ui::Msg, state: &Model) -> Command<Msg> {
 
             let bookmark = state.entities.bookmarks_by_id.get(bookmark_id).unwrap();
             let el = document
-                .get_element_by_id("page-container")
+                .get_element_by_id(format!("p-{}", bookmark.page_id).as_str())
                 .unwrap()
                 .dyn_into::<web_sys::HtmlElement>()
                 .unwrap();
 
-            el.set_scroll_top(
-                state
-                    .entities
-                    .pages_by_id
-                    .get(&bookmark.page_id)
-                    .unwrap()
-                    .height as i32
-                    * el.client_width(),
-            );
+            el.scroll_into_view();
 
             Command::none()
         }
