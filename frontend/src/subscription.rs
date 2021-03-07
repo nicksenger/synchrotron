@@ -1,28 +1,31 @@
-use std::hash::Hash;
+use std::rc::Rc;
 
-use iced_futures::futures::{channel::mpsc, stream::LocalBoxStream};
+use iced_futures::futures::{
+    channel::mpsc,
+    stream::{select, LocalBoxStream},
+};
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
 
-use crate::state::Route;
+use crate::{effects, messages::{Msg, routing}, state::Route};
 
-pub fn route_change(route: Route) -> iced_web::Subscription<Route> {
-    iced_web::Subscription::from_recipe(RouteChange { route })
+pub fn subscribe(
+    message_receiver: Option<mpsc::UnboundedReceiver<Rc<Msg>>>,
+) -> iced_web::Subscription<Msg> {
+    iced_web::Subscription::from_recipe(Effect { message_receiver })
 }
 
-pub struct RouteChange {
-    route: Route,
+pub struct Effect {
+    message_receiver: Option<mpsc::UnboundedReceiver<Rc<Msg>>>,
 }
 
-impl<H, I> iced_web::subscription::Recipe<H, I> for RouteChange
+impl<H, I> iced_web::subscription::Recipe<H, I> for Effect
 where
     H: std::hash::Hasher,
 {
-    type Output = crate::state::Route;
+    type Output = Msg;
 
-    fn hash(&self, state: &mut H) {
-        self.route.hash(state);
-    }
+    fn hash(&self, state: &mut H) {}
 
     fn stream(
         self: Box<Self>,
@@ -34,7 +37,7 @@ where
             let pathname = web_sys::window()
                 .and_then(|window| window.location().pathname().ok())
                 .unwrap_or("".to_owned());
-            sender.unbounded_send(Route::from(pathname));
+            sender.unbounded_send(Msg::Routing(routing::Msg::Navigate(Route::from(pathname))));
         }) as Box<dyn FnMut(_)>);
         web_sys::window().and_then(|window| {
             window
@@ -43,6 +46,9 @@ where
         });
         closure.forget();
 
-        Box::pin(receiver)
+        Box::pin(select(
+            effects::root_effect(self.message_receiver.unwrap()),
+            receiver,
+        ))
     }
 }

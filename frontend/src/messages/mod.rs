@@ -13,6 +13,7 @@ pub struct ErrorPayload {
 
 #[derive(Clone, Debug)]
 pub enum Msg {
+    Noop,
     Application(application::Msg),
     Authentication(authentication::Msg),
     Routing(routing::Msg),

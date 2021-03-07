@@ -1,8 +1,13 @@
+use std::cell::RefCell;
+use std::rc::Rc;
+
 use futures::future::ready;
+use iced_futures::futures::channel::mpsc;
 use iced_web::{Application, Command, Element, Subscription};
 use wasm_bindgen::prelude::*;
 
 mod commands;
+mod effects;
 mod messages;
 mod state;
 mod subscription;
@@ -17,6 +22,8 @@ pub fn main() {
 
 pub struct Synchrotron {
     state: state::Model,
+    message_sender: mpsc::UnboundedSender<Rc<Msg>>,
+    message_receiver: Rc<RefCell<Option<mpsc::UnboundedReceiver<Rc<Msg>>>>>,
 }
 
 impl Synchrotron {
@@ -24,15 +31,20 @@ impl Synchrotron {
         let pathname = web_sys::window()
             .and_then(|window| window.location().pathname().ok())
             .unwrap_or("".to_owned());
+
+        let (message_sender, message_receiver) = mpsc::unbounded();
+
         Self {
             state: state::Model::new(pathname),
+            message_sender,
+            message_receiver: Rc::new(RefCell::new(Some(message_receiver))),
         }
     }
 }
 
 impl Application for Synchrotron {
     type Executor = iced::executor::Default;
-    type Message = messages::Msg;
+    type Message = Msg;
     type Flags = ();
 
     fn title(&self) -> String {
@@ -58,15 +70,15 @@ impl Application for Synchrotron {
         let route = synchrotron.state.routing.route.clone();
         (
             synchrotron,
-            Command::perform(
-                ready(routing::Msg::Navigate(route)),
-                |msg| Msg::Routing(msg),
-            ),
+            Command::perform(ready(routing::Msg::Navigate(route)), |msg| {
+                Msg::Routing(msg)
+            }),
         )
     }
 
     fn update(&mut self, message: Self::Message) -> Command<Self::Message> {
         self.state.update(&message);
+        self.message_sender.unbounded_send(Rc::new(message.clone()));
         commands::get_command(&message, &self.state)
     }
 
@@ -75,7 +87,6 @@ impl Application for Synchrotron {
     }
 
     fn subscription(&self) -> Subscription<Self::Message> {
-        subscription::route_change(self.state.routing.route.clone())
-            .map(|r| Msg::Routing(routing::Msg::Navigate(r)))
+        subscription::subscribe(self.message_receiver.borrow_mut().take())
     }
 }

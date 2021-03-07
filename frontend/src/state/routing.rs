@@ -45,7 +45,7 @@ impl From<Route> for String {
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Hash)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Route {
     Login,
     Register,
